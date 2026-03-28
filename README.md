@@ -2,7 +2,7 @@
 
 ![VisiTab Demo](images/demo.png)
 
-A Chrome extension that replaces your new tab page with a powerful tab manager. Organize tabs into collections, link bookmark folders, customize backgrounds, and more.
+A Chrome extension that replaces your new tab page with a visual tab manager. View and organize all your open tabs at a glance, group them into collections, link bookmark folders, and customize your workspace — all from a single, intuitive new tab page.
 
 ## Installation
 
