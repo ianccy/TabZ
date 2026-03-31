@@ -57,7 +57,8 @@ export function onStatusChange(callback) {
 // --- Internal ---
 
 async function getTokenInteractive() {
-  const res = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: true });
+  // Clear old cached token first to force re-authorization with current scopes
+  const res = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: true, clearFirst: true });
   return res?.token || null;
 }
 
