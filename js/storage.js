@@ -216,7 +216,10 @@ export async function loadData() {
     const allCollections = [...cloudCollections, ...localDraftCollections, ...linkedCollections];
     const localUi = (await chrome.storage.local.get('uiState')).uiState || { collapsed: {}, collectionOrder: [] };
     const collapsedMap = { ...(cloudData.uiState?.collapsed || {}), ...(localUi.collapsed || {}) };
-    const savedOrder = [...(cloudData.uiState?.collectionOrder || []), ...(localUi.collectionOrder || [])];
+    // Prefer device-local full order to preserve mixed order across cloud/local/linked groups.
+    const savedOrder = Array.isArray(localUi.fullCollectionOrder) && localUi.fullCollectionOrder.length > 0
+      ? localUi.fullCollectionOrder
+      : [...(cloudData.uiState?.collectionOrder || []), ...(localUi.collectionOrder || [])];
     const collectionOrder = applyCollapsedAndOrder(allCollections, collapsedMap, savedOrder);
 
     return { collections: allCollections, collectionOrder };
@@ -263,7 +266,9 @@ export async function saveUIState(data) {
     await chrome.storage.local.set({
       uiState: {
         collapsed: Object.fromEntries(Object.entries(collapsed).filter(([id]) => localCols.some(c => c.id === id))),
-        collectionOrder: data.collectionOrder.filter(id => localCols.some(c => c.id === id))
+        collectionOrder: data.collectionOrder.filter(id => localCols.some(c => c.id === id)),
+        // Full order keeps mixed ordering (cloud/local/linked) after reload in this device.
+        fullCollectionOrder: data.collectionOrder
       }
     });
   } catch (err) {
