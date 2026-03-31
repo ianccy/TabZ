@@ -1,9 +1,11 @@
 import { getToken } from './auth.js';
 
+const FOLDER_NAME = 'VisiTab_Storage';
 const FILE_NAME = 'visitab-data.json';
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
 
+let cachedFolderId = null;
 let cachedFileId = null;
 
 export async function push(data) {
@@ -55,19 +57,62 @@ export async function isRemoteNewer(localTimestamp) {
   return remoteTime > localTimestamp;
 }
 
-// --- Internal ---
+// --- Folder ---
+
+async function ensureFolderId(token) {
+  if (cachedFolderId) return cachedFolderId;
+
+  const { driveFolderId } = await chrome.storage.local.get('driveFolderId');
+  if (driveFolderId) {
+    cachedFolderId = driveFolderId;
+    return cachedFolderId;
+  }
+
+  // Search for existing folder
+  const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const res = await fetch(
+    `${DRIVE_API}/files?q=${q}&fields=files(id)&pageSize=1`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (res.ok) {
+    const { files } = await res.json();
+    if (files?.length > 0) {
+      cachedFolderId = files[0].id;
+      await chrome.storage.local.set({ driveFolderId: cachedFolderId });
+      return cachedFolderId;
+    }
+  }
+
+  // Create folder
+  const createRes = await fetch(`${DRIVE_API}/files`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: FOLDER_NAME,
+      mimeType: 'application/vnd.google-apps.folder'
+    })
+  });
+  if (!createRes.ok) throw new Error(`Drive create folder failed: ${createRes.status}`);
+  const folder = await createRes.json();
+  cachedFolderId = folder.id;
+  await chrome.storage.local.set({ driveFolderId: cachedFolderId });
+  return cachedFolderId;
+}
+
+// --- File ---
 
 async function ensureFileId(token) {
   if (cachedFileId) return cachedFileId;
 
-  // Check local cache
   const { driveFileId } = await chrome.storage.local.get('driveFileId');
   if (driveFileId) {
     cachedFileId = driveFileId;
     return cachedFileId;
   }
 
-  // Search in Drive
   const existingId = await findFileId(token);
   if (existingId) {
     cachedFileId = existingId;
@@ -75,16 +120,16 @@ async function ensureFileId(token) {
     return cachedFileId;
   }
 
-  // Create new file
   cachedFileId = await createFile(token);
   await chrome.storage.local.set({ driveFileId: cachedFileId });
   return cachedFileId;
 }
 
 async function findFileId(token) {
-  const q = encodeURIComponent(`name='${FILE_NAME}'`);
+  const folderId = await ensureFolderId(token);
+  const q = encodeURIComponent(`name='${FILE_NAME}' and '${folderId}' in parents and trashed=false`);
   const res = await fetch(
-    `${DRIVE_API}/files?spaces=appDataFolder&q=${q}&fields=files(id)&pageSize=1`,
+    `${DRIVE_API}/files?q=${q}&fields=files(id)&pageSize=1`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) return null;
@@ -93,9 +138,11 @@ async function findFileId(token) {
 }
 
 async function createFile(token) {
+  const folderId = await ensureFolderId(token);
+
   const metadata = {
     name: FILE_NAME,
-    parents: ['appDataFolder']
+    parents: [folderId]
   };
 
   const initData = {
