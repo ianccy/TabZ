@@ -14,25 +14,26 @@ function notifyNewTab() {
 }
 
 // === Auth message handler (chrome.identity only available in service worker) ===
+
+const AUTH_SCOPES = [
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
+];
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'get-auth-token') {
+    const opts = { interactive: msg.interactive, scopes: AUTH_SCOPES };
+
     if (msg.clearFirst) {
-      // Force clear cached token, then get fresh one with new scopes
-      chrome.identity.getAuthToken({ interactive: false }, (oldToken) => {
-        if (oldToken) {
-          chrome.identity.removeCachedAuthToken({ token: oldToken }, () => {
-            chrome.identity.getAuthToken({ interactive: msg.interactive }, (token) => {
-              sendResponse({ token: chrome.runtime.lastError ? null : token || null });
-            });
-          });
-        } else {
-          chrome.identity.getAuthToken({ interactive: msg.interactive }, (token) => {
-            sendResponse({ token: chrome.runtime.lastError ? null : token || null });
-          });
-        }
+      // Clear all cached tokens then request fresh one
+      chrome.identity.clearAllCachedAuthTokens(() => {
+        chrome.identity.getAuthToken(opts, (token) => {
+          sendResponse({ token: chrome.runtime.lastError ? null : token || null });
+        });
       });
     } else {
-      chrome.identity.getAuthToken({ interactive: msg.interactive }, (token) => {
+      chrome.identity.getAuthToken(opts, (token) => {
         if (chrome.runtime.lastError || !token) {
           sendResponse({ token: null });
         } else {
@@ -44,7 +45,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'remove-auth-token') {
-    chrome.identity.removeCachedAuthToken({ token: msg.token }, () => {
+    chrome.identity.clearAllCachedAuthTokens(() => {
       sendResponse({ success: true });
     });
     return true;
