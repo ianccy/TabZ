@@ -21,6 +21,23 @@
         </div>
       </div>
       <div class="topbar-right">
+        <!-- Auth & Sync Status -->
+        <div id="sync-status" class="sync-status" hidden>
+          <span id="sync-indicator" class="sync-indicator"></span>
+          <span id="sync-text" class="sync-text"></span>
+        </div>
+        <div id="auth-area" class="auth-area">
+          <button id="btn-sign-in" class="sign-in-btn" hidden>登入 Google</button>
+          <div id="user-menu-trigger" class="user-menu-trigger" hidden>
+            <img id="user-avatar" class="user-avatar" src="" alt="">
+          </div>
+        </div>
+        <div id="user-dropdown" class="user-dropdown" hidden>
+          <div id="user-email" class="user-dropdown-email"></div>
+          <div id="user-sync-info" class="user-dropdown-sync"></div>
+          <button id="btn-sign-out" class="user-dropdown-item danger">登出</button>
+        </div>
+
         <select id="lang-select" class="lang-select"></select>
         <button id="btn-bg-settings" class="icon-btn" title="背景設定">🖼️</button>
         <button id="btn-import" class="icon-btn" title="匯入">📥</button>

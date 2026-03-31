@@ -222,6 +222,15 @@ function renderCollectionTab(tab, collectionId, handlers) {
     if (handlers.onRenameTab) handlers.onRenameTab(collectionId, tab.id, title);
   });
 
+  const bookmarkBtn = document.createElement('button');
+  bookmarkBtn.className = 'tab-edit-btn';
+  bookmarkBtn.title = t('addToBookmarks');
+  bookmarkBtn.textContent = '🔖';
+  bookmarkBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (handlers.onExportTabToBookmark) handlers.onExportTabToBookmark(tab);
+  });
+
   const removeBtn = document.createElement('button');
   removeBtn.className = 'tab-remove-btn';
   removeBtn.textContent = '✕';
@@ -242,7 +251,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   });
   info.append(titleRow, urlEl);
 
-  el.append(handle, favicon, info, removeBtn);
+  el.append(handle, favicon, info, bookmarkBtn, removeBtn);
   return el;
 }
 
@@ -597,6 +606,58 @@ export function renderFolderPicker(tree, excludeId, linkedIds, onSelect) {
   backdrop.appendChild(modal);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) backdrop.remove();
+  });
+  document.body.appendChild(backdrop);
+}
+
+export function renderMigrationModal(collections, onConfirm, onCancel) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const h3 = document.createElement('h3');
+  h3.textContent = t('migrationTitle');
+
+  const p = document.createElement('p');
+  p.textContent = t('migrationMsg', collections.length);
+
+  const list = document.createElement('ul');
+  list.className = 'migration-list';
+  for (const col of collections) {
+    const li = document.createElement('li');
+    li.textContent = `${col.icon} ${col.name} (${col.tabs.length} tabs)`;
+    list.appendChild(li);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'modal-btn secondary';
+  cancelBtn.textContent = t('migrationCancel');
+  cancelBtn.addEventListener('click', () => {
+    backdrop.remove();
+    if (onCancel) onCancel();
+  });
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'modal-btn primary';
+  confirmBtn.textContent = t('migrationConfirm');
+  confirmBtn.addEventListener('click', () => {
+    backdrop.remove();
+    onConfirm();
+  });
+
+  actions.append(cancelBtn, confirmBtn);
+  modal.append(h3, p, list, actions);
+  backdrop.appendChild(modal);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) {
+      backdrop.remove();
+      if (onCancel) onCancel();
+    }
   });
   document.body.appendChild(backdrop);
 }
