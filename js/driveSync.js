@@ -57,6 +57,16 @@ export async function isRemoteNewer(localTimestamp) {
   return remoteTime > localTimestamp;
 }
 
+export async function exists() {
+  try {
+    const token = await getToken();
+    const fileId = await findFileId(token);
+    return fileId !== null;
+  } catch {
+    return false;
+  }
+}
+
 // --- Folder ---
 
 async function ensureFolderId(token) {
