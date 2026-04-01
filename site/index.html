@@ -51,7 +51,7 @@
       text-decoration: none;
     }
     .nav-brand img { width: 28px; height: 28px; }
-    .nav-links { display: flex; gap: 24px; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
     .nav-links a {
       color: var(--text-muted);
       text-decoration: none;
@@ -59,6 +59,24 @@
       transition: color .2s;
     }
     .nav-links a:hover { color: var(--text); }
+    .lang-select {
+      background: var(--bg-card);
+      border: 1px solid #2e3140;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b8fa3'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+    .lang-select:hover { border-color: var(--accent); color: var(--text); }
+    .lang-select option { background: var(--bg-card); color: var(--text); }
 
     /* --- Hero --- */
     .hero {
@@ -104,12 +122,6 @@
       color: #fff;
     }
     .btn-primary:hover { box-shadow: 0 6px 24px rgba(124, 131, 255, .35); }
-    .btn-secondary {
-      background: var(--bg-card);
-      color: var(--text);
-      border: 1px solid #2e3140;
-    }
-    .btn-secondary:hover { background: var(--bg-card-hover); }
 
     .hero-screenshot {
       margin-top: 56px;
@@ -121,6 +133,57 @@
     .hero-screenshot img {
       width: 100%;
       display: block;
+    }
+
+    /* --- Why --- */
+    .why {
+      padding: 80px 32px 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .why h2 {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .why > p.subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 48px;
+      font-size: 16px;
+    }
+    .why-list {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .why-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .why-icon {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid #2e3140;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .why-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .why-item h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .why-item p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
     }
 
     /* --- Features --- */
@@ -158,10 +221,12 @@
       transform: translateY(-4px);
     }
     .feature-icon {
-      font-size: 32px;
-      margin-bottom: 14px;
       display: block;
+      margin-bottom: 14px;
+      width: 32px;
+      height: 32px;
     }
+    .feature-icon svg { width: 32px; height: 32px; stroke: var(--accent); fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
     .feature-card h3 {
       font-size: 17px;
       font-weight: 600;
@@ -199,6 +264,8 @@
       .hero { padding: 120px 20px 60px; }
       .hero h1 { font-size: 32px; }
       .hero p { font-size: 16px; }
+      .why { padding: 60px 20px 0; }
+      .why h2 { font-size: 28px; }
       .features { padding: 60px 20px; }
       .features h2 { font-size: 28px; }
       .features-grid {
@@ -226,20 +293,25 @@
       VisiTab
     </a>
     <div class="nav-links">
-      <a href="#features">Features</a>
+      <a href="#features" data-i18n="navFeatures">Features</a>
       <a href="https://github.com/ianccy/VisiTab" target="_blank" rel="noopener">GitHub</a>
-      <a href="#contact">Contact</a>
+      <a href="#contact" data-i18n="navContact">Contact</a>
+      <select class="lang-select" id="lang-select">
+        <option value="en">English</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="ja">日本語</option>
+      </select>
     </div>
   </nav>
 
   <!-- Hero -->
   <section class="hero">
-    <h1>Your new tab,<br><span>organized visually.</span></h1>
-    <p>A Chrome extension that turns your new tab into a powerful visual workspace. Group tabs into collections, sync across devices, and stay focused.</p>
+    <h1 data-i18n-html="heroTitle">Your new tab,<br><span>organized visually.</span></h1>
+    <p data-i18n="heroDesc">A Chrome extension that turns your new tab into a powerful visual workspace. Group tabs into collections, sync across devices, and stay focused.</p>
     <div class="hero-buttons">
       <a href="https://github.com/ianccy/VisiTab" class="btn btn-primary" target="_blank" rel="noopener">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        View on GitHub
+        <span data-i18n="heroBtn">View on GitHub</span>
       </a>
     </div>
     <div class="hero-screenshot">
@@ -247,40 +319,84 @@
     </div>
   </section>
 
+  <!-- Why VisiTab -->
+  <section class="why" id="why">
+    <h2 data-i18n="whyTitle">Why VisiTab?</h2>
+    <p class="subtitle" data-i18n="whySubtitle">Not just another tab manager. Built different.</p>
+    <div class="why-list">
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div>
+          <h3 data-i18n="why1Title">Your new tab, reimagined</h3>
+          <p data-i18n="why1Desc">Most tab managers hide behind a popup or sidebar. VisiTab replaces your new tab page entirely &mdash; every time you open a new tab, your workspace is right there. No extra clicks, no context switching.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div>
+          <h3 data-i18n="why2Title">Your data stays yours</h3>
+          <p data-i18n="why2Desc">No third-party servers. Collections are stored locally in Chrome, and cloud sync goes directly to your own Google Drive as a simple JSON file. You own your data, always.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+        <div>
+          <h3 data-i18n="why3Title">Works with your bookmarks, not against them</h3>
+          <p data-i18n="why3Desc">Link any existing Chrome bookmark folder as a live collection. Edits sync both ways &mdash; no need to choose between bookmarks and VisiTab. Your bookmarks become visual and manageable.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features -->
   <section class="features" id="features">
-    <h2>Features</h2>
-    <p>Everything you need to keep your browser organized.</p>
+    <h2 data-i18n="featuresTitle">Features</h2>
+    <p data-i18n="featuresSubtitle">Everything you need to keep your browser organized.</p>
     <div class="features-grid">
       <div class="feature-card">
-        <span class="feature-icon">&#x1F4C2;</span>
-        <h3>Collections</h3>
-        <p>Group saved tabs into named collections with custom colors and emoji icons. Keep related tabs together, always one click away.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+        <h3 data-i18n="f1Title">Collections</h3>
+        <p data-i18n="f1Desc">Group tabs into named collections with custom colors and emoji icons. Collapse or expand groups to keep your workspace tidy. One click to open all tabs in a collection.</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">&#x1F500;</span>
-        <h3>Drag &amp; Drop</h3>
-        <p>Reorder collections and tabs by dragging. Move tabs between collections effortlessly.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg></span>
+        <h3 data-i18n="f2Title">Drag &amp; Drop</h3>
+        <p data-i18n="f2Desc">Drag open tabs from the sidebar into any collection. Reorder collections and tabs freely. Move tabs between collections with a simple drag.</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">&#x2601;&#xFE0F;</span>
-        <h3>Google Drive Sync</h3>
-        <p>Sign in with Google to sync your collections across devices via Google Drive. Your data stays in your own Drive.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>
+        <h3 data-i18n="f3Title">Google Drive Sync</h3>
+        <p data-i18n="f3Desc">Sign in with Google to sync collections across devices. Data is stored as a file in your own Google Drive. Switch between accounts with automatic draft handling.</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">&#x1F516;</span>
-        <h3>Linked Bookmarks</h3>
-        <p>Link existing Chrome bookmark folders as live collections. Changes sync both ways automatically.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        <h3 data-i18n="f4Title">Linked Bookmarks</h3>
+        <p data-i18n="f4Desc">Turn any Chrome bookmark folder into a live collection. Changes flow both ways &mdash; edit in VisiTab or in Chrome's bookmark manager, both stay in sync.</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">&#x1F319;</span>
-        <h3>Dark &amp; Light Mode</h3>
-        <p>Toggle between dark and light themes. Customize your background with any color or image.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.04-.23-.29-.38-.63-.38-1.04 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.17-4.49-9-10-9z"/></svg></span>
+        <h3 data-i18n="f5Title">Customization</h3>
+        <p data-i18n="f5Desc">Dark and light themes. Custom background colors or images. Choose from 32 collection colors and 19 emoji icons to make your workspace truly yours.</p>
       </div>
       <div class="feature-card">
-        <span class="feature-icon">&#x1F50D;</span>
-        <h3>Search</h3>
-        <p>Instantly search across all collections and open tabs. Find any saved page in seconds.</p>
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <h3 data-i18n="f6Title">Search &amp; Export</h3>
+        <p data-i18n="f6Desc">Search across all collections and open tabs instantly. Import and export as JSON for backup. Export any collection as a Chrome bookmark folder.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+        <h3 data-i18n="f7Title">Quick Add from Popup</h3>
+        <p data-i18n="f7Desc">Save the current tab to any collection from the extension popup &mdash; without leaving the page you're on. One click, done.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <h3 data-i18n="f8Title">Local Drafts</h3>
+        <p data-i18n="f8Desc">Unsaved collections stay as local drafts. Sign in to Google and choose which to upload &mdash; nothing syncs until you say so.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg></span>
+        <h3 data-i18n="f9Title">Open Tabs Sidebar</h3>
+        <p data-i18n="f9Desc">See all open browser tabs in a real-time sidebar. Close tabs, drag them into collections, or click to switch &mdash; all from your new tab page.</p>
       </div>
     </div>
   </section>
@@ -291,8 +407,150 @@
       <a href="mailto:chu2815@hotmail.com">chu2815@hotmail.com</a>
       <a href="https://github.com/ianccy/VisiTab" target="_blank" rel="noopener">GitHub</a>
     </div>
-    <p>VisiTab &copy; 2025. Licensed under <a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener">CC BY-ND 4.0</a>.</p>
+    <p data-i18n-html="footerLicense">VisiTab &copy; 2025. Licensed under <a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener">CC BY-ND 4.0</a>.</p>
   </footer>
+
+  <script>
+    const i18n = {
+      en: {
+        navFeatures: 'Features',
+        navContact: 'Contact',
+        heroTitle: 'Your new tab,<br><span>organized visually.</span>',
+        heroDesc: 'A Chrome extension that turns your new tab into a powerful visual workspace. Group tabs into collections, sync across devices, and stay focused.',
+        heroBtn: 'View on GitHub',
+        whyTitle: 'Why VisiTab?',
+        whySubtitle: 'Not just another tab manager. Built different.',
+        why1Title: 'Your new tab, reimagined',
+        why1Desc: 'Most tab managers hide behind a popup or sidebar. VisiTab replaces your new tab page entirely \u2014 every time you open a new tab, your workspace is right there. No extra clicks, no context switching.',
+        why2Title: 'Your data stays yours',
+        why2Desc: 'No third-party servers. Collections are stored locally in Chrome, and cloud sync goes directly to your own Google Drive as a simple JSON file. You own your data, always.',
+        why3Title: 'Works with your bookmarks, not against them',
+        why3Desc: 'Link any existing Chrome bookmark folder as a live collection. Edits sync both ways \u2014 no need to choose between bookmarks and VisiTab. Your bookmarks become visual and manageable.',
+        why4Title: 'Multilingual interface',
+        why4Desc: 'Full support for English, Traditional Chinese, and Japanese. Switch languages anytime from the settings menu \u2014 every label, button, and message is translated.',
+        featuresTitle: 'Features',
+        featuresSubtitle: 'Everything you need to keep your browser organized.',
+        f1Title: 'Collections',
+        f1Desc: 'Group tabs into named collections with custom colors and emoji icons. Collapse or expand groups to keep your workspace tidy. One click to open all tabs in a collection.',
+        f2Title: 'Drag & Drop',
+        f2Desc: 'Drag open tabs from the sidebar into any collection. Reorder collections and tabs freely. Move tabs between collections with a simple drag.',
+        f3Title: 'Google Drive Sync',
+        f3Desc: 'Sign in with Google to sync collections across devices. Data is stored as a file in your own Google Drive. Switch between accounts with automatic draft handling.',
+        f4Title: 'Linked Bookmarks',
+        f4Desc: 'Turn any Chrome bookmark folder into a live collection. Changes flow both ways \u2014 edit in VisiTab or in Chrome\'s bookmark manager, both stay in sync.',
+        f5Title: 'Customization',
+        f5Desc: 'Dark and light themes. Custom background colors or images. Choose from 32 collection colors and 19 emoji icons to make your workspace truly yours.',
+        f6Title: 'Search & Export',
+        f6Desc: 'Search across all collections and open tabs instantly. Import and export as JSON for backup. Export any collection as a Chrome bookmark folder.',
+        f7Title: 'Quick Add from Popup',
+        f7Desc: 'Save the current tab to any collection from the extension popup \u2014 without leaving the page you\'re on. One click, done.',
+        f8Title: 'Local Drafts',
+        f8Desc: 'Unsaved collections stay as local drafts. Sign in to Google and choose which to upload \u2014 nothing syncs until you say so.',
+        f9Title: 'Open Tabs Sidebar',
+        f9Desc: 'See all open browser tabs in a real-time sidebar. Close tabs, drag them into collections, or click to switch \u2014 all from your new tab page.',
+        footerLicense: 'VisiTab &copy; 2025. Licensed under <a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener">CC BY-ND 4.0</a>.',
+      },
+      'zh-TW': {
+        navFeatures: '功能介紹',
+        navContact: '聯絡我們',
+        heroTitle: '你的新分頁，<br><span>視覺化管理。</span>',
+        heroDesc: '一款 Chrome 擴充功能，將新分頁變成強大的視覺化工作空間。分頁分組收藏、跨裝置同步，讓你專注於重要的事。',
+        heroBtn: '前往 GitHub',
+        whyTitle: '為什麼選擇 VisiTab？',
+        whySubtitle: '不只是分頁管理工具，而是全新的工作方式。',
+        why1Title: '重新定義新分頁',
+        why1Desc: '大多數分頁管理工具藏在彈出視窗或側邊欄。VisiTab 直接取代你的新分頁 \u2014 每次開新分頁，工作空間就在眼前，不需要額外點擊。',
+        why2Title: '你的資料，由你掌控',
+        why2Desc: '沒有第三方伺服器。收藏存在 Chrome 本機，雲端同步直接連到你自己的 Google 雲端硬碟，以 JSON 檔案儲存。資料永遠屬於你。',
+        why3Title: '與書籤協作，而非取代',
+        why3Desc: '將任何 Chrome 書籤資料夾連結為即時收藏。雙向同步 \u2014 在 VisiTab 或書籤管理員中編輯都會同步更新。讓書籤變得直覺好管理。',
+        why4Title: '多語系介面',
+        why4Desc: '完整支援英文、繁體中文與日文。隨時從設定選單切換語言 \u2014 所有標籤、按鈕與訊息都已翻譯。',
+        featuresTitle: '功能介紹',
+        featuresSubtitle: '管理瀏覽器所需的一切功能。',
+        f1Title: '分類收藏',
+        f1Desc: '將分頁分組收藏，支援自訂顏色與 emoji 圖示。可收合或展開群組，一鍵開啟收藏中的所有分頁。',
+        f2Title: '拖放排序',
+        f2Desc: '從側邊欄拖曳開啟的分頁到任何收藏。自由重新排列收藏與分頁，輕鬆在收藏間移動分頁。',
+        f3Title: 'Google 雲端同步',
+        f3Desc: '登入 Google 帳號即可跨裝置同步收藏。資料以檔案形式儲存在你自己的 Google 雲端硬碟，支援帳號切換與草稿處理。',
+        f4Title: '連結書籤資料夾',
+        f4Desc: '將任何 Chrome 書籤資料夾轉為即時收藏。雙向同步 \u2014 在 VisiTab 或 Chrome 書籤管理員編輯，兩邊都會更新。',
+        f5Title: '個人化自訂',
+        f5Desc: '深色與淺色主題切換。自訂背景顏色或圖片。32 種收藏顏色與 19 個 emoji 圖示，打造專屬工作空間。',
+        f6Title: '搜尋與匯出',
+        f6Desc: '即時搜尋所有收藏與開啟的分頁。支援 JSON 匯入匯出備份，也可將收藏匯出為 Chrome 書籤資料夾。',
+        f7Title: '快速收藏（Popup）',
+        f7Desc: '透過擴充功能彈出視窗，一鍵將當前分頁加入任何收藏 \u2014 不需離開正在瀏覽的頁面。',
+        f8Title: '本機草稿',
+        f8Desc: '未同步的收藏保留為本機草稿。登入 Google 後可選擇要上傳哪些 \u2014 在你決定之前不會同步。',
+        f9Title: '開啟分頁側邊欄',
+        f9Desc: '即時顯示所有開啟的瀏覽器分頁。關閉分頁、拖曳到收藏、或點擊切換 \u2014 全都在新分頁頁面完成。',
+        footerLicense: 'VisiTab &copy; 2025. 授權條款：<a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener">CC BY-ND 4.0</a>。',
+      },
+      ja: {
+        navFeatures: '機能紹介',
+        navContact: 'お問い合わせ',
+        heroTitle: '新しいタブを、<br><span>ビジュアルに整理。</span>',
+        heroDesc: 'Chrome 拡張機能で、新しいタブをパワフルなビジュアルワークスペースに。タブをコレクションにまとめ、デバイス間で同期し、集中力を維持しましょう。',
+        heroBtn: 'GitHub で見る',
+        whyTitle: 'なぜ VisiTab？',
+        whySubtitle: 'ただのタブマネージャーではありません。',
+        why1Title: '新しいタブを再定義',
+        why1Desc: '多くのタブマネージャーはポップアップやサイドバーに隠れています。VisiTab は新しいタブページそのものを置き換えます \u2014 新しいタブを開くたびに、ワークスペースがすぐそこに。',
+        why2Title: 'あなたのデータはあなたのもの',
+        why2Desc: 'サードパーティのサーバーは使用しません。コレクションは Chrome のローカルに保存され、クラウド同期はあなた自身の Google ドライブに JSON ファイルとして直接保存されます。',
+        why3Title: 'ブックマークと連携、置き換えではなく',
+        why3Desc: '既存の Chrome ブックマークフォルダをライブコレクションとしてリンク。双方向同期 \u2014 VisiTab でもブックマークマネージャーでも編集が反映されます。',
+        why4Title: '多言語インターフェース',
+        why4Desc: '英語、繁体字中国語、日本語に完全対応。設定メニューからいつでも言語を切り替えられます \u2014 すべてのラベル、ボタン、メッセージが翻訳済みです。',
+        featuresTitle: '機能紹介',
+        featuresSubtitle: 'ブラウザを整理するために必要なすべての機能。',
+        f1Title: 'コレクション',
+        f1Desc: 'タブを名前付きコレクションにグループ化し、カスタムカラーと絵文字アイコンで整理。グループの折りたたみ・展開、ワンクリックで全タブを開けます。',
+        f2Title: 'ドラッグ＆ドロップ',
+        f2Desc: 'サイドバーから開いているタブを任意のコレクションにドラッグ。コレクションとタブを自由に並べ替え、簡単に移動できます。',
+        f3Title: 'Google ドライブ同期',
+        f3Desc: 'Google アカウントでログインしてデバイス間でコレクションを同期。データはあなた自身の Google ドライブにファイルとして保存されます。',
+        f4Title: 'ブックマーク連携',
+        f4Desc: 'Chrome のブックマークフォルダをライブコレクションに変換。双方向同期 \u2014 VisiTab でも Chrome のブックマークマネージャーでも編集が反映されます。',
+        f5Title: 'カスタマイズ',
+        f5Desc: 'ダーク・ライトテーマの切り替え。背景色や画像のカスタマイズ。32 色のコレクションカラーと 19 個の絵文字アイコンであなただけのワークスペースに。',
+        f6Title: '検索とエクスポート',
+        f6Desc: 'すべてのコレクションと開いているタブを即座に検索。JSON でのインポート・エクスポートによるバックアップ。コレクションをブックマークフォルダとしてエクスポートも可能。',
+        f7Title: 'ポップアップからクイック追加',
+        f7Desc: '拡張機能のポップアップから、今見ているページを離れずにワンクリックでコレクションに追加。',
+        f8Title: 'ローカル草稿',
+        f8Desc: '未同期のコレクションはローカル草稿として保持。Google にログイン後、アップロードするものを選択 \u2014 あなたが決めるまで同期されません。',
+        f9Title: '開いているタブのサイドバー',
+        f9Desc: '開いているすべてのブラウザタブをリアルタイムでサイドバーに表示。タブを閉じる、コレクションにドラッグ、クリックで切り替え \u2014 すべて新しいタブページから。',
+        footerLicense: 'VisiTab &copy; 2025. ライセンス：<a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener">CC BY-ND 4.0</a>',
+      }
+    };
+
+    let currentLang = localStorage.getItem('visitab-site-lang') || 'en';
+    const selectEl = document.getElementById('lang-select');
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('visitab-site-lang', lang);
+      document.documentElement.lang = lang;
+      selectEl.value = lang;
+
+      const strings = i18n[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (strings[key]) el.textContent = strings[key];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.dataset.i18nHtml;
+        if (strings[key]) el.innerHTML = strings[key];
+      });
+    }
+
+    selectEl.addEventListener('change', (e) => applyLang(e.target.value));
+    applyLang(currentLang);
+  </script>
 
 </body>
 </html>
