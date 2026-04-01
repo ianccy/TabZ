@@ -241,7 +241,7 @@ export async function saveUIState(data) {
     }
 
     const cloudCols = data.collections.filter(c => !c.linked && c.status !== 'local');
-    const localCols = data.collections.filter(c => !c.linked && c.status === 'local');
+    const localCols = data.collections.filter(c => c.linked || c.status === 'local');
 
     const cloudData = await loadCloudData();
     cloudData.collections = cloudCols.map(c => ({
