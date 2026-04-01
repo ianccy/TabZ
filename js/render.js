@@ -294,9 +294,19 @@ export function renderAddDropdown(anchorEl, collections, onSelect) {
 
   const rect = anchorEl.getBoundingClientRect();
   dropdown.style.position = 'fixed';
-  dropdown.style.top = `${rect.bottom + 4}px`;
   dropdown.style.right = `${window.innerWidth - rect.right}px`;
   document.body.appendChild(dropdown);
+
+  const dropdownRect = dropdown.getBoundingClientRect();
+  if (rect.bottom + 4 + dropdownRect.height > window.innerHeight) {
+    dropdown.style.top = `${rect.top - dropdownRect.height - 4}px`;
+  } else {
+    dropdown.style.top = `${rect.bottom + 4}px`;
+  }
+  if (rect.right - dropdownRect.width < 0) {
+    dropdown.style.right = 'auto';
+    dropdown.style.left = '8px';
+  }
 
   const overlay = document.getElementById('dropdown-overlay');
   overlay.hidden = false;
@@ -332,9 +342,18 @@ export function renderContextMenu(anchorEl, items) {
 
   const rect = anchorEl.getBoundingClientRect();
   menu.style.position = 'fixed';
-  menu.style.top = `${rect.bottom + 4}px`;
   menu.style.left = `${rect.left}px`;
   document.body.appendChild(menu);
+
+  const menuRect = menu.getBoundingClientRect();
+  if (rect.bottom + 4 + menuRect.height > window.innerHeight) {
+    menu.style.top = `${rect.top - menuRect.height - 4}px`;
+  } else {
+    menu.style.top = `${rect.bottom + 4}px`;
+  }
+  if (rect.left + menuRect.width > window.innerWidth) {
+    menu.style.left = `${window.innerWidth - menuRect.width - 8}px`;
+  }
 
   const overlay = document.getElementById('dropdown-overlay');
   overlay.hidden = false;
