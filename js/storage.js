@@ -799,8 +799,15 @@ export async function backgroundSync(data, onUpdated) {
   const newer = await isRemoteNewer(localTimestamp);
   if (!newer) return false;
 
-  const remoteData = await drivePull();
-  if (!remoteData) return false;
+  const rawRemote = await drivePull();
+  if (!rawRemote) return false;
+
+  // Guard: if local data was modified while we were pulling (user action during sync),
+  // discard the stale remote data to avoid reverting user changes.
+  const { cloudLastModified: currentTimestamp } = await chrome.storage.local.get('cloudLastModified');
+  if ((currentTimestamp || 0) !== localTimestamp) return false;
+
+  const remoteData = sanitizeCloudData(rawRemote);
 
   await chrome.storage.local.set({
     cloudData: remoteData,
