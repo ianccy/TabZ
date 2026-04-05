@@ -804,12 +804,14 @@ function sanitizeCloudData(raw) {
 
 // === Background Sync ===
 
-export async function backgroundSync(data, onUpdated) {
+export async function backgroundSync(data, { onBeforePull, onUpdated } = {}) {
   const { cloudLastModified } = await chrome.storage.local.get('cloudLastModified');
   const localTimestamp = cloudLastModified || 0;
 
   const newer = await isRemoteNewer(localTimestamp);
   if (!newer) return false;
+
+  if (onBeforePull) onBeforePull();
 
   const rawRemote = await drivePull();
   if (!rawRemote) return false;

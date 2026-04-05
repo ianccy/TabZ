@@ -467,15 +467,22 @@ async function triggerSync() {
   const status = await getStatus();
   if (!status.isSignedIn) return;
 
-  setSyncStatus('syncing');
+  const overlay = document.getElementById('sync-overlay');
+
   try {
-    await backgroundSync(data, async () => {
-      data = await loadData();
-      renderAll();
+    await backgroundSync(data, {
+      onBeforePull() {
+        if (overlay) overlay.hidden = false;
+      },
+      async onUpdated() {
+        data = await loadData();
+        renderAll();
+      }
     });
-    setSyncStatus('synced');
   } catch {
-    setSyncStatus('error');
+    // Sync errors are non-fatal; user will retry on next focus
+  } finally {
+    if (overlay) overlay.hidden = true;
   }
 }
 
