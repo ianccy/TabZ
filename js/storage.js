@@ -67,12 +67,6 @@ async function loadCloudData() {
   };
 }
 
-let _onPushStatusChange = null;
-
-export function onPushStatusChange(callback) {
-  _onPushStatusChange = callback;
-}
-
 async function saveCloudData(cloudData, options = {}) {
   cloudData.lastModified = Date.now();
   await chrome.storage.local.set({
@@ -82,22 +76,16 @@ async function saveCloudData(cloudData, options = {}) {
   const immediate = options.immediate === true;
   const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 3000;
   if (immediate) {
-    if (_onPushStatusChange) _onPushStatusChange('syncing');
     try {
       await drivePush(cloudData, { immediate: true });
-      if (_onPushStatusChange) _onPushStatusChange('synced');
     } catch (err) {
       console.error('Drive push failed:', err);
-      if (_onPushStatusChange) _onPushStatusChange('error');
     }
     return;
   }
-  if (_onPushStatusChange) _onPushStatusChange('syncing');
   drivePush(cloudData, { debounceMs })
-    .then(() => { if (_onPushStatusChange) _onPushStatusChange('synced'); })
     .catch(err => {
       console.error('Drive push failed:', err);
-      if (_onPushStatusChange) _onPushStatusChange('error');
     });
 }
 
@@ -790,17 +778,38 @@ export async function handleUserLogout(options = {}) {
   ]);
 }
 
+function sanitizeCloudData(raw) {
+  return {
+    version: raw.version || 1,
+    lastModified: raw.lastModified || Date.now(),
+    collections: Array.isArray(raw.collections) ? raw.collections : [],
+    uiState: {
+      collapsed: raw.uiState?.collapsed || {},
+      collectionOrder: raw.uiState?.collectionOrder || []
+    }
+  };
+}
+
 // === Background Sync ===
 
-export async function backgroundSync(data, onUpdated) {
+export async function backgroundSync(data, { onBeforePull, onUpdated } = {}) {
   const { cloudLastModified } = await chrome.storage.local.get('cloudLastModified');
   const localTimestamp = cloudLastModified || 0;
 
   const newer = await isRemoteNewer(localTimestamp);
   if (!newer) return false;
 
-  const remoteData = await drivePull();
-  if (!remoteData) return false;
+  if (onBeforePull) onBeforePull();
+
+  const rawRemote = await drivePull();
+  if (!rawRemote) return false;
+
+  // Guard: if local data was modified while we were pulling (user action during sync),
+  // discard the stale remote data to avoid reverting user changes.
+  const { cloudLastModified: currentTimestamp } = await chrome.storage.local.get('cloudLastModified');
+  if ((currentTimestamp || 0) !== localTimestamp) return false;
+
+  const remoteData = sanitizeCloudData(rawRemote);
 
   await chrome.storage.local.set({
     cloudData: remoteData,

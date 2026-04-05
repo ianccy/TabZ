@@ -12,7 +12,6 @@ import {
   handleUserLogout,
   exportCollectionToBookmarkFolder,
   backgroundSync,
-  onPushStatusChange,
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
@@ -221,7 +220,6 @@ async function initAuth() {
   const status = await getStatus();
   updateAuthUI(status);
   onStatusChange(updateAuthUI);
-  onPushStatusChange(setSyncStatus);
 }
 
 function updateAuthUI(status) {
@@ -467,15 +465,24 @@ async function triggerSync() {
   const status = await getStatus();
   if (!status.isSignedIn) return;
 
+  const overlay = document.getElementById('sync-overlay');
+
   setSyncStatus('syncing');
   try {
-    await backgroundSync(data, async () => {
-      data = await loadData();
-      renderAll();
+    await backgroundSync(data, {
+      onBeforePull() {
+        if (overlay) overlay.hidden = false;
+      },
+      async onUpdated() {
+        data = await loadData();
+        renderAll();
+      }
     });
     setSyncStatus('synced');
   } catch {
     setSyncStatus('error');
+  } finally {
+    if (overlay) overlay.hidden = true;
   }
 }
 
@@ -535,6 +542,10 @@ async function init() {
 
   await initAuth();
   triggerSync();
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') triggerSync();
+  });
 
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'tabs-updated') refreshOpenTabs().then(renderOpenTabsUI);
