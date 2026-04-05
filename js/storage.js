@@ -67,12 +67,6 @@ async function loadCloudData() {
   };
 }
 
-let _onPushStatusChange = null;
-
-export function onPushStatusChange(callback) {
-  _onPushStatusChange = callback;
-}
-
 async function saveCloudData(cloudData, options = {}) {
   cloudData.lastModified = Date.now();
   await chrome.storage.local.set({
@@ -82,22 +76,16 @@ async function saveCloudData(cloudData, options = {}) {
   const immediate = options.immediate === true;
   const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 3000;
   if (immediate) {
-    if (_onPushStatusChange) _onPushStatusChange('syncing');
     try {
       await drivePush(cloudData, { immediate: true });
-      if (_onPushStatusChange) _onPushStatusChange('synced');
     } catch (err) {
       console.error('Drive push failed:', err);
-      if (_onPushStatusChange) _onPushStatusChange('error');
     }
     return;
   }
-  if (_onPushStatusChange) _onPushStatusChange('syncing');
   drivePush(cloudData, { debounceMs })
-    .then(() => { if (_onPushStatusChange) _onPushStatusChange('synced'); })
     .catch(err => {
       console.error('Drive push failed:', err);
-      if (_onPushStatusChange) _onPushStatusChange('error');
     });
 }
 

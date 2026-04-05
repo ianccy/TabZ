@@ -12,7 +12,6 @@ import {
   handleUserLogout,
   exportCollectionToBookmarkFolder,
   backgroundSync,
-  onPushStatusChange,
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
@@ -221,7 +220,6 @@ async function initAuth() {
   const status = await getStatus();
   updateAuthUI(status);
   onStatusChange(updateAuthUI);
-  onPushStatusChange(setSyncStatus);
 }
 
 function updateAuthUI(status) {
