@@ -467,6 +467,7 @@ async function triggerSync() {
 
   const overlay = document.getElementById('sync-overlay');
 
+  setSyncStatus('syncing');
   try {
     await backgroundSync(data, {
       onBeforePull() {
@@ -477,8 +478,9 @@ async function triggerSync() {
         renderAll();
       }
     });
+    setSyncStatus('synced');
   } catch {
-    // Sync errors are non-fatal; user will retry on next focus
+    setSyncStatus('error');
   } finally {
     if (overlay) overlay.hidden = true;
   }
