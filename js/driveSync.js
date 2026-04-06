@@ -1,9 +1,6 @@
-async function callBackground(message, retries = 1) {
+async function callBackground(message) {
   const res = await chrome.runtime.sendMessage(message);
-  if (!res) {
-    if (retries > 0) return callBackground(message, retries - 1);
-    throw new Error('Background unavailable');
-  }
+  if (!res) throw new Error('Background unavailable');
   if (res.error) throw new Error(res.error);
   return res;
 }

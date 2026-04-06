@@ -793,7 +793,7 @@ function sanitizeCloudData(raw) {
 // === Background Sync ===
 
 export async function clearDriveCache() {
-  try { await driveClearCache(); } catch { /* service worker may be inactive */ }
+  await driveClearCache();
 }
 
 export async function ensureCloudFile() {
