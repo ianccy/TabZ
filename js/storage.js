@@ -6,7 +6,7 @@ import {
 
 import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
-import { push as drivePush, pull as drivePull, isRemoteNewer, exists as driveExists } from './driveSync.js';
+import { push as drivePush, pull as drivePull, isRemoteNewer, exists as driveExists, clearCache as driveClearCache, ensureFile as driveEnsureFile } from './driveSync.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -791,6 +791,28 @@ function sanitizeCloudData(raw) {
 }
 
 // === Background Sync ===
+
+export async function clearDriveCache() {
+  await driveClearCache();
+}
+
+export async function ensureCloudFile() {
+  await driveEnsureFile();
+  const hasRemote = await driveExists();
+  if (!hasRemote) return;
+  // If remote file exists but local cloudData is empty, pull it down
+  const cloudData = await loadCloudData();
+  if (cloudData.collections.length === 0) {
+    const rawRemote = await drivePull();
+    if (rawRemote && Array.isArray(rawRemote.collections) && rawRemote.collections.length > 0) {
+      const remoteData = sanitizeCloudData(rawRemote);
+      await chrome.storage.local.set({
+        cloudData: remoteData,
+        cloudLastModified: remoteData.lastModified || Date.now()
+      });
+    }
+  }
+}
 
 export async function backgroundSync(data, { onBeforePull, onUpdated } = {}) {
   const { cloudLastModified } = await chrome.storage.local.get('cloudLastModified');
