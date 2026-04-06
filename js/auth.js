@@ -22,7 +22,7 @@ export async function signIn() {
 
 export async function switchAccount() {
   // Clear cached tokens to force account picker
-  await sendToBackground({ type: 'remove-auth-token' });
+  await chrome.runtime.sendMessage({ type: 'remove-auth-token' });
   cachedUser = null;
   await chrome.storage.local.remove('authUser');
 
@@ -46,7 +46,7 @@ export async function switchAccount() {
 export async function signOut() {
   const token = await getTokenSilent();
   if (token) {
-    await sendToBackground({ type: 'remove-auth-token', token });
+    await chrome.runtime.sendMessage({ type: 'remove-auth-token', token });
   }
   cachedUser = null;
   await chrome.storage.local.remove('authUser');
@@ -82,21 +82,9 @@ export function onStatusChange(callback) {
 
 // --- Internal ---
 
-async function sendToBackground(message, retries = 2) {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const res = await chrome.runtime.sendMessage(message);
-      if (res !== undefined && res !== null) return res;
-    } catch { /* service worker waking */ }
-    if (i < retries) await new Promise(r => setTimeout(r, 300));
-  }
-  return null;
-}
-
 async function getTokenInteractive() {
   try {
-    // Interactive auth may show a popup — use direct sendMessage (no retry)
-    // to avoid cancelling the popup with a duplicate request.
+    // First try with clear cache, then fallback to normal interactive request.
     const first = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: true, clearFirst: true });
     if (first?.token) return { token: first.token, error: null };
 
@@ -113,7 +101,7 @@ async function getTokenInteractive() {
 }
 
 async function getTokenSilent() {
-  const res = await sendToBackground({ type: 'get-auth-token', interactive: false });
+  const res = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: false });
   return res?.token || null;
 }
 
