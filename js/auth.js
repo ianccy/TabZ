@@ -45,8 +45,10 @@ export async function switchAccount() {
 
 export async function signOut() {
   const token = await getTokenSilent();
-  if (token) {
-    await chrome.runtime.sendMessage({ type: 'remove-auth-token', token });
+  const res = await chrome.runtime.sendMessage({ type: 'remove-auth-token', token });
+  if (!res?.success) {
+    // Retry once without token to let background fetch/revoke whatever it can.
+    await chrome.runtime.sendMessage({ type: 'remove-auth-token' });
   }
   cachedUser = null;
   await chrome.storage.local.remove('authUser');

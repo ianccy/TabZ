@@ -44,6 +44,19 @@ function getAuthToken(opts) {
   });
 }
 
+async function revokeToken(token) {
+  if (!token) return;
+  try {
+    await fetch('https://oauth2.googleapis.com/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `token=${encodeURIComponent(token)}`
+    });
+  } catch (err) {
+    console.warn('Token revoke failed:', err);
+  }
+}
+
 async function ensureToken() {
   const token = await getAuthToken({ interactive: false, scopes: AUTH_SCOPES });
   if (!token) throw new Error('Not signed in');
@@ -195,6 +208,17 @@ async function drivePush(data, opts = {}) {
   return { success: true, debounced: true };
 }
 
+async function getFileModifiedTime(token, fileId) {
+  const res = await fetch(`${DRIVE_API}/files/${fileId}?fields=modifiedTime`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) return null;
+
+  const { modifiedTime } = await res.json();
+  const ts = new Date(modifiedTime).getTime();
+  return Number.isFinite(ts) ? ts : null;
+}
+
 async function drivePull() {
   const token = await ensureToken();
   const fileId = await ensureFileId(token);
@@ -209,7 +233,14 @@ async function drivePull() {
     }
     throw new Error(`Drive pull failed: ${res.status}`);
   }
-  return res.json();
+
+  const data = await res.json();
+  const remoteModifiedTime = await getFileModifiedTime(token, fileId);
+
+  return {
+    data,
+    remoteModifiedTime
+  };
 }
 
 async function driveExists() {
@@ -220,16 +251,18 @@ async function driveExists() {
 
 async function driveIsRemoteNewer(localTimestamp) {
   const token = await ensureToken();
-  const fileId = await findFileId(token);
-  if (!fileId) return false;
+  const fileId = await ensureFileId(token);
 
-  const res = await fetch(`${DRIVE_API}/files/${fileId}?fields=modifiedTime`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  if (!res.ok) return false;
-  const { modifiedTime } = await res.json();
-  const remoteTime = new Date(modifiedTime).getTime();
+  const remoteTime = await getFileModifiedTime(token, fileId);
+  if (!remoteTime) return false;
   return remoteTime > (localTimestamp || 0);
+}
+
+async function driveGetRemoteModifiedTime() {
+  const token = await ensureToken();
+  const fileId = await ensureFileId(token);
+  const remoteTime = await getFileModifiedTime(token, fileId);
+  return remoteTime;
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -260,9 +293,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'remove-auth-token') {
-    chrome.identity.clearAllCachedAuthTokens(() => {
-      sendResponse({ success: true });
-    });
+    (async () => {
+      try {
+        let tokenToRevoke = msg.token || null;
+        if (!tokenToRevoke) {
+          tokenToRevoke = await getAuthToken({ interactive: false, scopes: AUTH_SCOPES });
+        }
+
+        if (tokenToRevoke) {
+          await revokeToken(tokenToRevoke);
+          await new Promise((resolve) => {
+            chrome.identity.removeCachedAuthToken({ token: tokenToRevoke }, () => resolve());
+          });
+        }
+
+        await new Promise((resolve) => {
+          chrome.identity.clearAllCachedAuthTokens(() => resolve());
+        });
+
+        // Reset in-memory Drive cache tied to previous auth session.
+        cachedFolderId = null;
+        cachedFileId = null;
+
+        sendResponse({ success: true });
+      } catch (err) {
+        sendResponse({ success: false, error: err?.message || String(err) });
+      }
+    })();
     return true;
   }
 
@@ -275,7 +332,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === 'drive-pull') {
     drivePull()
-      .then((data) => sendResponse({ data }))
+      .then((result) => sendResponse(result || { data: null, remoteModifiedTime: null }))
       .catch((err) => sendResponse({ error: err.message || String(err) }));
     return true;
   }
@@ -290,6 +347,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'drive-is-remote-newer') {
     driveIsRemoteNewer(msg.localTimestamp)
       .then((newer) => sendResponse({ newer }))
+      .catch((err) => sendResponse({ error: err.message || String(err) }));
+    return true;
+  }
+
+  if (msg.type === 'drive-get-remote-modified-time') {
+    driveGetRemoteModifiedTime()
+      .then((remoteTime) => sendResponse({ remoteTime }))
       .catch((err) => sendResponse({ error: err.message || String(err) }));
     return true;
   }

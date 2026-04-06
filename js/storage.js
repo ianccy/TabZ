@@ -6,7 +6,7 @@ import {
 
 import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
-import { push as drivePush, pull as drivePull, isRemoteNewer, exists as driveExists } from './driveSync.js';
+import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists } from './driveSync.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -794,26 +794,61 @@ function sanitizeCloudData(raw) {
 
 export async function backgroundSync(data, { onBeforePull, onUpdated } = {}) {
   const { cloudLastModified } = await chrome.storage.local.get('cloudLastModified');
-  const localTimestamp = cloudLastModified || 0;
+  const localTimestamp = Number(cloudLastModified) || 0;
 
-  const newer = await isRemoteNewer(localTimestamp);
-  if (!newer) return false;
+  let remoteTime = 0;
+  let newer = false;
+  let pulled = null;
+
+  try {
+    remoteTime = await getRemoteModifiedTime();
+    newer = remoteTime > localTimestamp;
+  } catch (err) {
+    // Backward compatibility when background worker is still on older message handlers.
+    newer = await isRemoteNewer(localTimestamp);
+  }
+
+  if (!newer) {
+    return false;
+  }
+
+  // If we had to fallback and don't have a metadata timestamp, validate with pull result
+  // before showing group loading. This avoids false-positive loading flashes.
+  if (!remoteTime) {
+    pulled = await drivePull();
+    if (!pulled?.data) return false;
+
+    const probedRemoteTime = Number(pulled.remoteModifiedTime) || 0;
+    if (!(probedRemoteTime > localTimestamp)) {
+      return false;
+    }
+
+    remoteTime = probedRemoteTime;
+  }
+
+  // Guard before pull starts: if another flow has already updated local sync marker,
+  // skip this stale run so UI does not flash group loading unnecessarily.
+  const { cloudLastModified: prePullTimestamp } = await chrome.storage.local.get('cloudLastModified');
+  if ((prePullTimestamp || 0) !== localTimestamp) return false;
 
   if (onBeforePull) onBeforePull();
 
-  const rawRemote = await drivePull();
-  if (!rawRemote) return false;
+  if (!pulled) {
+    pulled = await drivePull();
+  }
+  if (!pulled?.data) return false;
 
   // Guard: if local data was modified while we were pulling (user action during sync),
   // discard the stale remote data to avoid reverting user changes.
   const { cloudLastModified: currentTimestamp } = await chrome.storage.local.get('cloudLastModified');
   if ((currentTimestamp || 0) !== localTimestamp) return false;
 
-  const remoteData = sanitizeCloudData(rawRemote);
+  const remoteData = sanitizeCloudData(pulled.data);
+  const remoteModifiedTime = Number(pulled.remoteModifiedTime) || remoteTime || remoteData.lastModified || Date.now();
 
   await chrome.storage.local.set({
     cloudData: remoteData,
-    cloudLastModified: remoteData.lastModified || Date.now()
+    cloudLastModified: remoteModifiedTime
   });
 
   if (onUpdated) onUpdated();

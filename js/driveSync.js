@@ -11,12 +11,20 @@ export async function push(data, options = {}) {
 
 export async function pull() {
   const res = await callBackground({ type: 'drive-pull' });
-  return res.data ?? null;
+  return {
+    data: res.data ?? null,
+    remoteModifiedTime: Number(res.remoteModifiedTime) || null
+  };
 }
 
 export async function isRemoteNewer(localTimestamp) {
   const res = await callBackground({ type: 'drive-is-remote-newer', localTimestamp });
   return res.newer === true;
+}
+
+export async function getRemoteModifiedTime() {
+  const res = await callBackground({ type: 'drive-get-remote-modified-time' });
+  return Number(res.remoteTime) || 0;
 }
 
 export async function exists() {

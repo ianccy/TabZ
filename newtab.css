@@ -296,6 +296,7 @@ body {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
   margin-bottom: 8px;
+  position: relative;
 }
 
 .collection-card:last-child {
@@ -410,6 +411,35 @@ body {
 
 .collection-body.collapsed {
   display: none;
+}
+
+.collection-card.cloud-sync-blocked > :not(.cloud-sync-overlay) {
+  pointer-events: none;
+}
+
+.cloud-sync-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-surface, #ffffff) 68%, transparent);
+  backdrop-filter: blur(1px);
+}
+
+.cloud-sync-overlay[hidden] {
+  display: none;
+}
+
+.cloud-sync-overlay-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid color-mix(in srgb, var(--text-muted, #888) 35%, transparent);
+  border-top-color: var(--text-primary, #333);
+  border-radius: 50%;
+  animation: sync-spin 0.7s linear infinite;
 }
 
 /* === Tab Cards Grid (inside collections) === */
@@ -1629,6 +1659,8 @@ body.has-bg-image .collection-tabs > .tab-item {
   font-size: 12px;
   color: var(--text-muted, #888);
   cursor: default;
+  position: relative;
+  border-radius: 10px;
 }
 
 .sync-indicator {
@@ -1639,6 +1671,10 @@ body.has-bg-image .collection-tabs > .tab-item {
 }
 .sync-indicator.synced {
   background: #27ae60;
+}
+.sync-indicator.checking {
+  background: #3498db;
+  animation: pulse 1.2s infinite;
 }
 .sync-indicator.syncing {
   background: #f39c12;
@@ -1789,28 +1825,29 @@ body.has-bg-image .collection-tabs > .tab-item {
   }
 }
 
-/* === Sync Overlay (blocking during pull) === */
-.sync-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
+/* === Sync Overlay (blocking only sync group during pull) === */
+.sync-status-overlay {
+  position: absolute;
+  inset: -4px;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(2px);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-surface, #ffffff) 72%, transparent);
+  backdrop-filter: blur(1px);
   transition: opacity 0.2s ease;
 }
 
-.sync-overlay[hidden] {
+.sync-status-overlay[hidden] {
   display: none;
 }
 
-.sync-overlay-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+.sync-status-overlay-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--text-muted, #888) 35%, transparent);
+  border-top-color: var(--text-primary, #333);
   border-radius: 50%;
   animation: sync-spin 0.7s linear infinite;
 }

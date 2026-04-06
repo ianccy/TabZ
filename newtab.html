@@ -25,6 +25,9 @@
         <div id="sync-status" class="sync-status" hidden>
           <span id="sync-indicator" class="sync-indicator"></span>
           <span id="sync-text" class="sync-text"></span>
+          <div id="sync-overlay" class="sync-status-overlay" hidden>
+            <div class="sync-status-overlay-spinner"></div>
+          </div>
         </div>
         <div id="auth-area" class="auth-area">
           <button id="btn-sign-in" class="sign-in-btn" hidden>登入 Google</button>
@@ -112,9 +115,6 @@
         <button id="bg-image-url-apply" class="modal-btn primary">套用</button>
       </div>
     </div>
-  </div>
-  <div id="sync-overlay" class="sync-overlay" hidden>
-    <div class="sync-overlay-spinner"></div>
   </div>
   <div id="dropdown-overlay" class="dropdown-overlay" hidden></div>
   <input type="file" id="import-file-input" accept=".json" hidden>

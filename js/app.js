@@ -33,6 +33,8 @@ let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
 let lastSyncTime = null;
+let cloudSyncBlocking = false;
+let syncInProgress = false;
 
 // === Background Customization ===
 
@@ -252,6 +254,8 @@ function setSyncStatus(state) {
   if (state === 'synced') {
     text.textContent = t('syncStatus');
     lastSyncTime = Date.now();
+  } else if (state === 'checking') {
+    text.textContent = t('syncChecking');
   } else if (state === 'syncing') {
     text.textContent = t('syncing');
   } else if (state === 'error') {
@@ -462,16 +466,20 @@ async function handleSwitchAccount() {
 }
 
 async function triggerSync() {
+  if (syncInProgress) return;
+
   const status = await getStatus();
   if (!status.isSignedIn) return;
 
   const overlay = document.getElementById('sync-overlay');
-
-  setSyncStatus('syncing');
+  setSyncStatus('checking');
+  syncInProgress = true;
   try {
     await backgroundSync(data, {
       onBeforePull() {
+        setSyncStatus('syncing');
         if (overlay) overlay.hidden = false;
+        setCloudSyncBlocking(true);
       },
       async onUpdated() {
         data = await loadData();
@@ -482,7 +490,23 @@ async function triggerSync() {
   } catch {
     setSyncStatus('error');
   } finally {
+    syncInProgress = false;
     if (overlay) overlay.hidden = true;
+    setCloudSyncBlocking(false);
+  }
+}
+
+function setCloudSyncBlocking(enabled) {
+  cloudSyncBlocking = enabled;
+  applyCloudSyncBlocking();
+}
+
+function applyCloudSyncBlocking() {
+  const cloudCards = document.querySelectorAll('.collection-card[data-sync-source="cloud"]');
+  for (const card of cloudCards) {
+    card.classList.toggle('cloud-sync-blocked', cloudSyncBlocking);
+    const overlay = card.querySelector('.cloud-sync-overlay');
+    if (overlay) overlay.hidden = !cloudSyncBlocking;
   }
 }
 
@@ -600,6 +624,8 @@ function renderCollectionsUI() {
       onRenameTab: handleRenameTab,
     }
   );
+
+  applyCloudSyncBlocking();
 }
 
 function renderAll() {
