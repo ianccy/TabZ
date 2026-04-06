@@ -350,8 +350,8 @@ async function handleSignOut() {
   const draftCollections = data.collections.filter(c => !c.linked && c.status === 'local');
   const draftCount = draftCollections.length;
   const finalize = async (deleteDrafts) => {
-    await clearDriveCache();
     await handleUserLogout({ deleteDrafts });
+    await clearDriveCache();
     await signOut();
     data = await loadData();
     renderAll();
@@ -393,7 +393,6 @@ async function handleSwitchAccount() {
 
   const doSwitch = async () => {
     document.getElementById('user-dropdown').hidden = true;
-    await clearDriveCache();
     await handleUserLogout({ deleteDrafts: false });
 
     try {
