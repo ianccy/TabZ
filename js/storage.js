@@ -797,20 +797,28 @@ export async function clearDriveCache() {
 }
 
 export async function ensureCloudFile() {
-  await driveEnsureFile();
-  const hasRemote = await driveExists();
-  if (!hasRemote) return;
-  // If remote file exists but local cloudData is empty, pull it down
-  const cloudData = await loadCloudData();
-  if (cloudData.collections.length === 0) {
-    const rawRemote = await drivePull();
-    if (rawRemote && Array.isArray(rawRemote.collections) && rawRemote.collections.length > 0) {
-      const remoteData = sanitizeCloudData(rawRemote);
-      await chrome.storage.local.set({
-        cloudData: remoteData,
-        cloudLastModified: remoteData.lastModified || Date.now()
-      });
+  try {
+    await driveEnsureFile();
+  } catch {
+    return; // service worker not ready; backgroundSync will handle later
+  }
+  try {
+    const hasRemote = await driveExists();
+    if (!hasRemote) return;
+    // If remote file exists but local cloudData is empty, pull it down
+    const cloudData = await loadCloudData();
+    if (cloudData.collections.length === 0) {
+      const rawRemote = await drivePull();
+      if (rawRemote && Array.isArray(rawRemote.collections) && rawRemote.collections.length > 0) {
+        const remoteData = sanitizeCloudData(rawRemote);
+        await chrome.storage.local.set({
+          cloudData: remoteData,
+          cloudLastModified: remoteData.lastModified || Date.now()
+        });
+      }
     }
+  } catch {
+    // non-fatal; triggerSync will retry
   }
 }
 
