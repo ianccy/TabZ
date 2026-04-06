@@ -1,16 +1,11 @@
-async function callBackground(message, retries = 2) {
-  try {
-    const res = await chrome.runtime.sendMessage(message);
-    if (res) {
-      if (res.error) throw new Error(res.error);
-      return res;
-    }
-  } catch (err) {
-    if (retries <= 0) throw err;
+async function callBackground(message, retries = 1) {
+  const res = await chrome.runtime.sendMessage(message);
+  if (!res) {
+    if (retries > 0) return callBackground(message, retries - 1);
+    throw new Error('Background unavailable');
   }
-  if (retries <= 0) throw new Error('Background unavailable');
-  await new Promise(r => setTimeout(r, 300));
-  return callBackground(message, retries - 1);
+  if (res.error) throw new Error(res.error);
+  return res;
 }
 
 export async function push(data, options = {}) {
