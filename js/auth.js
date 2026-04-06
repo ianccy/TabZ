@@ -95,11 +95,12 @@ async function sendToBackground(message, retries = 2) {
 
 async function getTokenInteractive() {
   try {
-    // First try with clear cache, then fallback to normal interactive request.
-    const first = await sendToBackground({ type: 'get-auth-token', interactive: true, clearFirst: true });
+    // Interactive auth may show a popup — use direct sendMessage (no retry)
+    // to avoid cancelling the popup with a duplicate request.
+    const first = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: true, clearFirst: true });
     if (first?.token) return { token: first.token, error: null };
 
-    const retry = await sendToBackground({ type: 'get-auth-token', interactive: true, clearFirst: false });
+    const retry = await chrome.runtime.sendMessage({ type: 'get-auth-token', interactive: true, clearFirst: false });
     if (retry?.token) return { token: retry.token, error: null };
 
     return {
