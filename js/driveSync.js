@@ -23,11 +23,3 @@ export async function exists() {
   const res = await callBackground({ type: 'drive-exists' });
   return res.exists === true;
 }
-
-export async function clearCache() {
-  return callBackground({ type: 'drive-clear-cache' });
-}
-
-export async function ensureFile() {
-  return callBackground({ type: 'drive-ensure-file' });
-}

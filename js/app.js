@@ -12,7 +12,6 @@ import {
   handleUserLogout,
   exportCollectionToBookmarkFolder,
   backgroundSync,
-  clearDriveCache, ensureCloudFile,
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
@@ -284,11 +283,6 @@ async function handleSignIn() {
     if (syncStatusEl) syncStatusEl.hidden = false;
     setSyncStatus('syncing');
 
-    // Clear stale background cache and ensure cloud file exists.
-    // If remote has data but local is empty (post-logout), pull it down first.
-    await clearDriveCache();
-    await ensureCloudFile();
-
     data = await loadData();
     renderAll();
 
@@ -351,7 +345,6 @@ async function handleSignOut() {
   const draftCount = draftCollections.length;
   const finalize = async (deleteDrafts) => {
     await handleUserLogout({ deleteDrafts });
-    await clearDriveCache();
     await signOut();
     data = await loadData();
     renderAll();
@@ -401,9 +394,6 @@ async function handleSwitchAccount() {
       const syncStatusEl = document.getElementById('sync-status');
       if (syncStatusEl) syncStatusEl.hidden = false;
       setSyncStatus('syncing');
-
-      await clearDriveCache();
-      await ensureCloudFile();
 
       data = await loadData();
       renderAll();

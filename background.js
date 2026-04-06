@@ -293,21 +293,4 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch((err) => sendResponse({ error: err.message || String(err) }));
     return true;
   }
-
-  if (msg.type === 'drive-clear-cache') {
-    cachedFolderId = null;
-    cachedFileId = null;
-    sendResponse({ success: true });
-    return true;
-  }
-
-  if (msg.type === 'drive-ensure-file') {
-    (async () => {
-      const token = await ensureToken();
-      await ensureFileId(token);
-    })()
-      .then(() => sendResponse({ success: true }))
-      .catch((err) => sendResponse({ error: err.message || String(err) }));
-    return true;
-  }
 });
