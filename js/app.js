@@ -15,13 +15,15 @@ import {
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
+import { logError } from './logger.js';
+
 import {
   renderOpenTabs, renderCollections, renderAddDropdown, closeDropdown,
   renderContextMenu, renderColorPicker, renderIconPicker, renderModal,
   renderFolderPicker, flashElement, renderMigrationModal
 } from './render.js';
 
-import { signIn, signOut, switchAccount, getStatus, onStatusChange } from './auth.js';
+import { signIn, signOut, getStatus, onStatusChange } from './auth.js';
 
 import { initDragDrop } from './dragdrop.js';
 
@@ -212,8 +214,6 @@ function applyStaticI18n() {
   if (signInBtn) signInBtn.textContent = t('signIn');
   const signOutBtn = document.getElementById('btn-sign-out');
   if (signOutBtn) signOutBtn.textContent = t('signOut');
-  const switchBtn = document.getElementById('btn-switch-account');
-  if (switchBtn) switchBtn.textContent = t('switchAccount');
 }
 
 // === Auth UI ===
@@ -290,7 +290,7 @@ async function handleSignIn() {
     data = await loadData();
     renderAll();
 
-    await triggerSync();
+    await triggerSync({ forcePull: true });
 
     const asked = await wasMigrationAsked();
     if (!asked) {
@@ -306,7 +306,7 @@ async function handleSignIn() {
               renderAll();
               setSyncStatus('synced');
             } catch (err) {
-              console.error('Migration failed:', err);
+              logError('Migration failed:', err);
               setSyncStatus('error');
               renderModal(t('migrationTitle'), t('migrationError'), [
                 { label: t('confirm'), style: 'primary' }
@@ -323,7 +323,7 @@ async function handleSignIn() {
       }
     }
   } catch (err) {
-    console.error('Sign in failed:', err);
+    logError('Sign in failed:', err);
     const msg = String(err?.message || err || '');
     if (/bad client id/i.test(msg)) {
       const manifest = chrome.runtime.getManifest();
@@ -363,7 +363,7 @@ async function handleSignOut() {
         try {
           data = await migrateToCloud(data, selections);
         } catch (err) {
-          console.error('Logout draft processing failed:', err);
+          logError('Logout draft processing failed:', err);
         }
         await finalize(false);
       },
@@ -384,88 +384,7 @@ async function handleSignOut() {
   await finalize(false);
 }
 
-async function handleSwitchAccount() {
-  // First handle drafts for current account (same as sign-out)
-  const draftCollections = data.collections.filter(c => !c.linked && c.status === 'local');
-
-  const doSwitch = async () => {
-    document.getElementById('user-dropdown').hidden = true;
-    await handleUserLogout({ deleteDrafts: false });
-
-    try {
-      await switchAccount();
-
-      const syncStatusEl = document.getElementById('sync-status');
-      if (syncStatusEl) syncStatusEl.hidden = false;
-      setSyncStatus('syncing');
-
-      data = await loadData();
-      renderAll();
-      await triggerSync();
-
-      const asked = await wasMigrationAsked();
-      if (!asked) {
-        const localCollections = data.collections.filter(c => !c.linked && c.status === 'local');
-        if (localCollections.length > 0) {
-          await setMigrationPending();
-          renderMigrationModal(
-            localCollections,
-            async (selections) => {
-              setSyncStatus('syncing');
-              try {
-                data = await migrateToCloud(data, selections);
-                renderAll();
-                setSyncStatus('synced');
-              } catch (err) {
-                console.error('Migration failed:', err);
-                setSyncStatus('error');
-              }
-            },
-            async () => {
-              await setMigrationAsked('cancelled');
-            },
-            { showKeepOption: false }
-          );
-        } else {
-          await chrome.storage.local.set({ migrationAsked: true, migrationDecision: 'confirmed' });
-        }
-      }
-    } catch (err) {
-      console.error('Switch account failed:', err);
-      data = await loadData();
-      renderAll();
-    }
-  };
-
-  if (draftCollections.length > 0) {
-    renderMigrationModal(
-      draftCollections,
-      async (selections) => {
-        setSyncStatus('syncing');
-        try {
-          data = await migrateToCloud(data, selections);
-          await doSwitch();
-        } catch (err) {
-          console.error('Draft processing failed:', err);
-          setSyncStatus('error');
-        }
-      },
-      null,
-      {
-        titleKey: 'logoutDraftTitle',
-        messageKey: 'logoutDraftMsg',
-        confirmKey: 'switchAccount',
-        cancelKey: 'cancel',
-        showKeepOption: true
-      }
-    );
-    return;
-  }
-
-  await doSwitch();
-}
-
-async function triggerSync() {
+async function triggerSync({ forcePull = false } = {}) {
   if (syncInProgress) return;
 
   const status = await getStatus();
@@ -476,6 +395,7 @@ async function triggerSync() {
   syncInProgress = true;
   try {
     await backgroundSync(data, {
+      forcePull,
       onBeforePull() {
         setSyncStatus('syncing');
         if (overlay) overlay.hidden = false;
@@ -819,7 +739,7 @@ function handleMenuClick(e, col) {
               renderAll();
               setSyncStatus('synced');
             } catch (err) {
-              console.error('Upload to cloud failed:', err);
+              logError('Upload to cloud failed:', err);
               setSyncStatus('error');
             }
           },
@@ -1124,7 +1044,6 @@ function setupEventListeners() {
   // Auth
   document.getElementById('btn-sign-in').addEventListener('click', handleSignIn);
   document.getElementById('btn-sign-out').addEventListener('click', handleSignOut);
-  document.getElementById('btn-switch-account').addEventListener('click', handleSwitchAccount);
 
   document.getElementById('user-menu-trigger').addEventListener('click', () => {
     const dropdown = document.getElementById('user-dropdown');

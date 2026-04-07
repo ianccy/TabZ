@@ -32,6 +32,24 @@ let pushTimer = null;
 let queuedPushPayload = null;
 let pendingPushResolvers = [];
 
+function isDevBuild() {
+  try {
+    const manifest = chrome.runtime?.getManifest?.();
+    if (!manifest) return true;
+
+    // Unpacked extension has no update_url; bundled/published build usually has one.
+    return !manifest.update_url;
+  } catch {
+    return true;
+  }
+}
+
+const IS_DEV_BUILD = isDevBuild();
+
+function logWarn(...args) {
+  if (IS_DEV_BUILD) console.warn(...args);
+}
+
 function getAuthToken(opts) {
   return new Promise((resolve) => {
     chrome.identity.getAuthToken(opts, (token) => {
@@ -53,7 +71,7 @@ async function revokeToken(token) {
       body: `token=${encodeURIComponent(token)}`
     });
   } catch (err) {
-    console.warn('Token revoke failed:', err);
+    logWarn('Token revoke failed:', err);
   }
 }
 
@@ -103,8 +121,31 @@ async function ensureFolderId(token) {
   return cachedFolderId;
 }
 
+async function findFolderId(token) {
+  const { driveFolderId } = await chrome.storage.local.get('driveFolderId');
+  if (driveFolderId) {
+    cachedFolderId = driveFolderId;
+    return driveFolderId;
+  }
+
+  const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const res = await fetch(`${DRIVE_API}/files?q=${q}&fields=files(id)&pageSize=1`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) return null;
+
+  const { files } = await res.json();
+  if (!files?.length) return null;
+
+  cachedFolderId = files[0].id;
+  await chrome.storage.local.set({ driveFolderId: cachedFolderId });
+  return cachedFolderId;
+}
+
 async function findFileId(token) {
-  const folderId = await ensureFolderId(token);
+  const folderId = await findFolderId(token);
+  if (!folderId) return null;
+
   const q = encodeURIComponent(`name='${FILE_NAME}' and '${folderId}' in parents and trashed=false`);
   const res = await fetch(`${DRIVE_API}/files?q=${q}&fields=files(id)&pageSize=1`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -221,7 +262,16 @@ async function getFileModifiedTime(token, fileId) {
 
 async function drivePull() {
   const token = await ensureToken();
-  const fileId = await ensureFileId(token);
+  const fileId = await findFileId(token);
+  if (!fileId) {
+    cachedFileId = null;
+    await chrome.storage.local.remove('driveFileId');
+    return null;
+  }
+
+  cachedFileId = fileId;
+  await chrome.storage.local.set({ driveFileId: fileId });
+
   const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
     headers: { Authorization: `Bearer ${token}` }
   });
@@ -251,7 +301,8 @@ async function driveExists() {
 
 async function driveIsRemoteNewer(localTimestamp) {
   const token = await ensureToken();
-  const fileId = await ensureFileId(token);
+  const fileId = await findFileId(token);
+  if (!fileId) return false;
 
   const remoteTime = await getFileModifiedTime(token, fileId);
   if (!remoteTime) return false;
@@ -260,7 +311,9 @@ async function driveIsRemoteNewer(localTimestamp) {
 
 async function driveGetRemoteModifiedTime() {
   const token = await ensureToken();
-  const fileId = await ensureFileId(token);
+  const fileId = await findFileId(token);
+  if (!fileId) return null;
+
   const remoteTime = await getFileModifiedTime(token, fileId);
   return remoteTime;
 }
