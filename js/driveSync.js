@@ -27,6 +27,10 @@ export async function getRemoteModifiedTime() {
   return Number(res.remoteTime) || 0;
 }
 
+export async function cancelPendingPush() {
+  return callBackground({ type: 'drive-cancel-pending-push' });
+}
+
 export async function exists() {
   const res = await callBackground({ type: 'drive-exists' });
   return res.exists === true;

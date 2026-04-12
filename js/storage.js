@@ -6,7 +6,7 @@ import {
 
 import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
-import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists } from './driveSync.js';
+import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists, cancelPendingPush } from './driveSync.js';
 import { logError } from './logger.js';
 
 const DEFAULT_COLORS = [
@@ -75,7 +75,7 @@ async function saveCloudData(cloudData, options = {}) {
     cloudLastModified: cloudData.lastModified
   });
   const immediate = options.immediate === true;
-  const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 3000;
+  const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 10000;
   if (immediate) {
     try {
       await drivePush(cloudData, { immediate: true });
@@ -869,6 +869,9 @@ export async function backgroundSync(data, { onBeforePull, onUpdated, forcePull 
 
   const remoteData = sanitizeCloudData(pulled.data);
   const remoteModifiedTime = Number(pulled.remoteModifiedTime) || remoteTime || remoteData.lastModified || Date.now();
+
+  // Cancel any pending debounced push so it doesn't overwrite the freshly pulled data.
+  await cancelPendingPush().catch(() => {});
 
   await chrome.storage.local.set({
     cloudData: remoteData,
