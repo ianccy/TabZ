@@ -260,6 +260,38 @@ body {
   color: var(--accent);
 }
 
+.settings-toggle {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  background: var(--border-color, #ccc);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.settings-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.settings-toggle:checked {
+  background: var(--accent, #7c83ff);
+}
+
+.settings-toggle:checked::after {
+  transform: translateX(16px);
+}
+
 /* === Main Layout === */
 .main-layout {
   display: flex;

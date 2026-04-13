@@ -1,6 +1,16 @@
 import { t } from './i18n.js';
 import { isDragging } from './dragdrop.js';
 
+async function openUrl(url) {
+  const { openInCurrentTab } = await chrome.storage.local.get('openInCurrentTab');
+  if (openInCurrentTab) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.update(tab.id, { url });
+  } else {
+    chrome.tabs.create({ url });
+  }
+}
+
 export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseTab) {
   container.innerHTML = '';
   if (tabs.length === 0) {
@@ -229,7 +239,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   info.className = 'tab-info';
   info.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (tab.url) chrome.tabs.create({ url: tab.url });
+    if (tab.url) openUrl(tab.url);
   });
 
   const titleRow = document.createElement('div');
@@ -264,7 +274,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   urlEl.dataset.tooltip = tab.url || '';
   urlEl.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (tab.url) chrome.tabs.create({ url: tab.url });
+    if (tab.url) openUrl(tab.url);
   });
   info.append(titleRow, urlEl);
 
