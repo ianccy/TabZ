@@ -34,6 +34,7 @@ import { getBookmarkTree, getRootFolderId } from './bookmarks.js';
 let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
+let openInCurrentTab = false;
 let lastSyncTime = null;
 let cloudSyncBlocking = false;
 let syncInProgress = false;
@@ -192,6 +193,8 @@ function applyStaticI18n() {
   if (addBtn) addBtn.textContent = t('addCollection');
   const linkBtn = document.getElementById('btn-link-folder');
   if (linkBtn) linkBtn.textContent = t('linkFolder');
+  const openCurrentLabel = document.getElementById('settings-open-current-label');
+  if (openCurrentLabel) openCurrentLabel.textContent = t('openInCurrentTab');
   const bgLabel = document.getElementById('settings-bg-label');
   if (bgLabel) bgLabel.textContent = t('bgSettings');
   const langLabel = document.getElementById('settings-lang-label');
@@ -1062,6 +1065,17 @@ function setupEventListeners() {
   document.getElementById('btn-settings').addEventListener('click', () => {
     const sd = document.getElementById('settings-dropdown');
     sd.hidden = !sd.hidden;
+  });
+
+  // Open in current tab toggle
+  const openCurrentToggle = document.getElementById('toggle-open-current');
+  chrome.storage.local.get('openInCurrentTab').then(({ openInCurrentTab: val }) => {
+    openInCurrentTab = !!val;
+    openCurrentToggle.checked = openInCurrentTab;
+  });
+  openCurrentToggle.addEventListener('change', () => {
+    openInCurrentTab = openCurrentToggle.checked;
+    chrome.storage.local.set({ openInCurrentTab });
   });
 
   document.addEventListener('click', (e) => {

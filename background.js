@@ -364,6 +364,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           chrome.identity.clearAllCachedAuthTokens(() => resolve());
         });
 
+        // Cancel any pending debounced push before clearing auth state.
+        if (pushTimer) clearTimeout(pushTimer);
+        pushTimer = null;
+        for (const r of pendingPushResolvers) r.resolve({ cancelled: true });
+        pendingPushResolvers = [];
+        queuedPushPayload = null;
+
         // Reset in-memory Drive cache tied to previous auth session.
         cachedFolderId = null;
         cachedFileId = null;
@@ -373,6 +380,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ success: false, error: err?.message || String(err) });
       }
     })();
+    return true;
+  }
+
+  if (msg.type === 'drive-cancel-pending-push') {
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = null;
+    const resolvers = pendingPushResolvers;
+    pendingPushResolvers = [];
+    queuedPushPayload = null;
+    for (const r of resolvers) r.resolve({ cancelled: true });
+    sendResponse({ success: true });
     return true;
   }
 

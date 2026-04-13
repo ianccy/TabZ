@@ -53,6 +53,7 @@ const messages = {
     popupDisabledMsg: '無法加入 TabZ 自身頁面',
     popupAlreadyAdded: '已加入',
     popupAddToCollection: '加入此 Collection',
+    openInCurrentTab: '在原分頁開啟',
     // Auth & Sync
     signIn: '登入 Google',
     signInLoading: '登入中...',
@@ -151,6 +152,7 @@ const messages = {
     popupDisabledMsg: 'Cannot add TabZ page itself',
     popupAlreadyAdded: 'Added',
     popupAddToCollection: 'Add to Collection',
+    openInCurrentTab: 'Open in Current Tab',
     // Auth & Sync
     signIn: 'Sign in with Google',
     signInLoading: 'Signing in...',
@@ -249,6 +251,7 @@ const messages = {
     popupDisabledMsg: 'TabZ 自身のページは追加できません',
     popupAlreadyAdded: '追加済み',
     popupAddToCollection: 'コレクションに追加',
+    openInCurrentTab: '現在のタブで開く',
     // Auth & Sync
     signIn: 'Google でログイン',
     signInLoading: 'ログイン中...',
