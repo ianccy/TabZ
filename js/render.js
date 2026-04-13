@@ -1,6 +1,16 @@
 import { t } from './i18n.js';
 import { isDragging } from './dragdrop.js';
 
+async function openUrl(url) {
+  const { openInCurrentTab } = await chrome.storage.local.get('openInCurrentTab');
+  if (openInCurrentTab) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.update(tab.id, { url });
+  } else {
+    chrome.tabs.create({ url });
+  }
+}
+
 export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseTab) {
   container.innerHTML = '';
   if (tabs.length === 0) {
@@ -74,9 +84,12 @@ export function renderCollections(container, orderedCollections, handlers) {
 }
 
 function renderCollectionCard(col, handlers) {
+  const status = col.linked ? 'linked' : (col.status || 'local');
+
   const card = document.createElement('div');
   card.className = 'collection-card';
   card.dataset.collectionId = col.id;
+  card.dataset.syncSource = status;
   card.draggable = true;
   // Header
   const header = document.createElement('div');
@@ -118,7 +131,6 @@ function renderCollectionCard(col, handlers) {
     badge.textContent = t('alreadyLinked');
     left.appendChild(badge);
   } else {
-    const status = col.status || 'local';
     const badge = document.createElement('span');
     if (status === 'cloud') {
       badge.className = 'sync-badge synced';
@@ -182,6 +194,19 @@ function renderCollectionCard(col, handlers) {
 
   body.appendChild(tabsContainer);
   card.append(header, body);
+
+  if (status === 'cloud') {
+    const overlay = document.createElement('div');
+    overlay.className = 'cloud-sync-overlay';
+    overlay.hidden = true;
+
+    const spinner = document.createElement('div');
+    spinner.className = 'cloud-sync-overlay-spinner';
+    overlay.appendChild(spinner);
+
+    card.appendChild(overlay);
+  }
+
   return card;
 }
 
@@ -214,7 +239,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   info.className = 'tab-info';
   info.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (tab.url) chrome.tabs.create({ url: tab.url });
+    if (tab.url) openUrl(tab.url);
   });
 
   const titleRow = document.createElement('div');
@@ -249,7 +274,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   urlEl.dataset.tooltip = tab.url || '';
   urlEl.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (tab.url) chrome.tabs.create({ url: tab.url });
+    if (tab.url) openUrl(tab.url);
   });
   info.append(titleRow, urlEl);
 

@@ -6,7 +6,8 @@ import {
 
 import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
-import { push as drivePush, pull as drivePull, isRemoteNewer, exists as driveExists } from './driveSync.js';
+import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists, cancelPendingPush } from './driveSync.js';
+import { logError } from './logger.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -74,18 +75,18 @@ async function saveCloudData(cloudData, options = {}) {
     cloudLastModified: cloudData.lastModified
   });
   const immediate = options.immediate === true;
-  const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 3000;
+  const debounceMs = Number.isFinite(options.debounceMs) ? options.debounceMs : 10000;
   if (immediate) {
     try {
       await drivePush(cloudData, { immediate: true });
     } catch (err) {
-      console.error('Drive push failed:', err);
+      logError('Drive push failed:', err);
     }
     return;
   }
   drivePush(cloudData, { debounceMs })
     .catch(err => {
-      console.error('Drive push failed:', err);
+      logError('Drive push failed:', err);
     });
 }
 
@@ -654,13 +655,16 @@ export async function migrateToCloud(data, selections = null) {
 
   try {
     const preparedMetadata = JSON.parse(JSON.stringify(syncMetadata));
+    const localToCloudId = new Map();
 
     for (const col of localDrafts) {
       const choice = selectionMap.get(col.id) || { collectionId: col.id, sync: true, keep: false };
       if (!choice.sync) continue;
 
       upsertMeta(preparedMetadata, col.id, { uploaded: false, updatedAt: Date.now() });
-      cloudData.collections.push(toCloudCollection(col, preparedMetadata));
+      const cloudCol = toCloudCollection(col, preparedMetadata);
+      localToCloudId.set(col.id, cloudCol.id);
+      cloudData.collections.push(cloudCol);
     }
 
     // Deduplicate cloud collections by UUID
@@ -671,9 +675,23 @@ export async function migrateToCloud(data, selections = null) {
       return true;
     });
 
+    const cloudIdSet = new Set(cloudData.collections.map(c => c.id));
+    const orderedCloudIds = [];
+
+    // Preserve user's current UI order: existing cloud IDs and newly-uploaded local IDs.
+    for (const id of data.collectionOrder || []) {
+      const mappedId = localToCloudId.get(id) || id;
+      if (!cloudIdSet.has(mappedId)) continue;
+      if (!orderedCloudIds.includes(mappedId)) orderedCloudIds.push(mappedId);
+    }
+
+    for (const col of cloudData.collections) {
+      if (!orderedCloudIds.includes(col.id)) orderedCloudIds.push(col.id);
+    }
+
     cloudData.uiState = {
       collapsed: {},
-      collectionOrder: cloudData.collections.map(c => c.id)
+      collectionOrder: orderedCloudIds
     };
 
     await saveCloudData(cloudData, { immediate: true });
@@ -792,28 +810,72 @@ function sanitizeCloudData(raw) {
 
 // === Background Sync ===
 
-export async function backgroundSync(data, { onBeforePull, onUpdated } = {}) {
+export async function backgroundSync(data, { onBeforePull, onUpdated, forcePull = false } = {}) {
   const { cloudLastModified } = await chrome.storage.local.get('cloudLastModified');
-  const localTimestamp = cloudLastModified || 0;
+  const localTimestamp = Number(cloudLastModified) || 0;
 
-  const newer = await isRemoteNewer(localTimestamp);
-  if (!newer) return false;
+  let remoteTime = 0;
+  let newer = forcePull;
+  let pulled = null;
+
+  if (!forcePull) {
+    try {
+      remoteTime = await getRemoteModifiedTime();
+      newer = remoteTime > localTimestamp;
+    } catch (err) {
+      // Backward compatibility when background worker is still on older message handlers.
+      newer = await isRemoteNewer(localTimestamp);
+    }
+  }
+
+  if (!newer) {
+    return false;
+  }
+
+  // If we had to fallback and don't have a metadata timestamp, validate with pull result
+  // before showing group loading. This avoids false-positive loading flashes.
+  if (!remoteTime) {
+    pulled = await drivePull();
+    if (!pulled?.data) return false;
+
+    const probedRemoteTime = Number(pulled.remoteModifiedTime) || 0;
+    if (!forcePull && !(probedRemoteTime > localTimestamp)) {
+      return false;
+    }
+
+    remoteTime = probedRemoteTime;
+  }
+
+  if (!forcePull) {
+    // Guard before pull starts: if another flow has already updated local sync marker,
+    // skip this stale run so UI does not flash group loading unnecessarily.
+    const { cloudLastModified: prePullTimestamp } = await chrome.storage.local.get('cloudLastModified');
+    if ((prePullTimestamp || 0) !== localTimestamp) return false;
+  }
 
   if (onBeforePull) onBeforePull();
 
-  const rawRemote = await drivePull();
-  if (!rawRemote) return false;
+  if (!pulled) {
+    pulled = await drivePull();
+  }
+  if (!pulled?.data) return false;
 
-  // Guard: if local data was modified while we were pulling (user action during sync),
-  // discard the stale remote data to avoid reverting user changes.
-  const { cloudLastModified: currentTimestamp } = await chrome.storage.local.get('cloudLastModified');
-  if ((currentTimestamp || 0) !== localTimestamp) return false;
+  if (!forcePull) {
+    // Guard: if local data was modified while we were pulling (user action during sync),
+    // discard the stale remote data to avoid reverting user changes.
+    const { cloudLastModified: currentTimestamp } = await chrome.storage.local.get('cloudLastModified');
+    if ((currentTimestamp || 0) !== localTimestamp) return false;
+  }
 
-  const remoteData = sanitizeCloudData(rawRemote);
+  const remoteData = sanitizeCloudData(pulled.data);
+  const remoteModifiedTime = Number(pulled.remoteModifiedTime) || remoteTime || remoteData.lastModified || Date.now();
+
+  // Cancel any pending debounced push so it doesn't overwrite the freshly pulled data.
+  await cancelPendingPush().catch(() => {});
 
   await chrome.storage.local.set({
     cloudData: remoteData,
-    cloudLastModified: remoteData.lastModified || Date.now()
+    cloudLastModified: remoteModifiedTime
   });
 
   if (onUpdated) onUpdated();

@@ -15,13 +15,15 @@ import {
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
+import { logError } from './logger.js';
+
 import {
   renderOpenTabs, renderCollections, renderAddDropdown, closeDropdown,
   renderContextMenu, renderColorPicker, renderIconPicker, renderModal,
   renderFolderPicker, flashElement, renderMigrationModal
 } from './render.js';
 
-import { signIn, signOut, switchAccount, getStatus, onStatusChange } from './auth.js';
+import { signIn, signOut, getStatus, onStatusChange } from './auth.js';
 
 import { initDragDrop } from './dragdrop.js';
 
@@ -32,7 +34,10 @@ import { getBookmarkTree, getRootFolderId } from './bookmarks.js';
 let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
+let openInCurrentTab = false;
 let lastSyncTime = null;
+let cloudSyncBlocking = false;
+let syncInProgress = false;
 
 // === Background Customization ===
 
@@ -188,6 +193,8 @@ function applyStaticI18n() {
   if (addBtn) addBtn.textContent = t('addCollection');
   const linkBtn = document.getElementById('btn-link-folder');
   if (linkBtn) linkBtn.textContent = t('linkFolder');
+  const openCurrentLabel = document.getElementById('settings-open-current-label');
+  if (openCurrentLabel) openCurrentLabel.textContent = t('openInCurrentTab');
   const bgLabel = document.getElementById('settings-bg-label');
   if (bgLabel) bgLabel.textContent = t('bgSettings');
   const langLabel = document.getElementById('settings-lang-label');
@@ -210,8 +217,6 @@ function applyStaticI18n() {
   if (signInBtn) signInBtn.textContent = t('signIn');
   const signOutBtn = document.getElementById('btn-sign-out');
   if (signOutBtn) signOutBtn.textContent = t('signOut');
-  const switchBtn = document.getElementById('btn-switch-account');
-  if (switchBtn) switchBtn.textContent = t('switchAccount');
 }
 
 // === Auth UI ===
@@ -252,6 +257,8 @@ function setSyncStatus(state) {
   if (state === 'synced') {
     text.textContent = t('syncStatus');
     lastSyncTime = Date.now();
+  } else if (state === 'checking') {
+    text.textContent = t('syncChecking');
   } else if (state === 'syncing') {
     text.textContent = t('syncing');
   } else if (state === 'error') {
@@ -286,7 +293,7 @@ async function handleSignIn() {
     data = await loadData();
     renderAll();
 
-    await triggerSync();
+    await triggerSync({ forcePull: true });
 
     const asked = await wasMigrationAsked();
     if (!asked) {
@@ -302,7 +309,7 @@ async function handleSignIn() {
               renderAll();
               setSyncStatus('synced');
             } catch (err) {
-              console.error('Migration failed:', err);
+              logError('Migration failed:', err);
               setSyncStatus('error');
               renderModal(t('migrationTitle'), t('migrationError'), [
                 { label: t('confirm'), style: 'primary' }
@@ -319,7 +326,7 @@ async function handleSignIn() {
       }
     }
   } catch (err) {
-    console.error('Sign in failed:', err);
+    logError('Sign in failed:', err);
     const msg = String(err?.message || err || '');
     if (/bad client id/i.test(msg)) {
       const manifest = chrome.runtime.getManifest();
@@ -359,7 +366,7 @@ async function handleSignOut() {
         try {
           data = await migrateToCloud(data, selections);
         } catch (err) {
-          console.error('Logout draft processing failed:', err);
+          logError('Logout draft processing failed:', err);
         }
         await finalize(false);
       },
@@ -380,98 +387,22 @@ async function handleSignOut() {
   await finalize(false);
 }
 
-async function handleSwitchAccount() {
-  // First handle drafts for current account (same as sign-out)
-  const draftCollections = data.collections.filter(c => !c.linked && c.status === 'local');
+async function triggerSync({ forcePull = false } = {}) {
+  if (syncInProgress) return;
 
-  const doSwitch = async () => {
-    document.getElementById('user-dropdown').hidden = true;
-    await handleUserLogout({ deleteDrafts: false });
-
-    try {
-      await switchAccount();
-
-      const syncStatusEl = document.getElementById('sync-status');
-      if (syncStatusEl) syncStatusEl.hidden = false;
-      setSyncStatus('syncing');
-
-      data = await loadData();
-      renderAll();
-      await triggerSync();
-
-      const asked = await wasMigrationAsked();
-      if (!asked) {
-        const localCollections = data.collections.filter(c => !c.linked && c.status === 'local');
-        if (localCollections.length > 0) {
-          await setMigrationPending();
-          renderMigrationModal(
-            localCollections,
-            async (selections) => {
-              setSyncStatus('syncing');
-              try {
-                data = await migrateToCloud(data, selections);
-                renderAll();
-                setSyncStatus('synced');
-              } catch (err) {
-                console.error('Migration failed:', err);
-                setSyncStatus('error');
-              }
-            },
-            async () => {
-              await setMigrationAsked('cancelled');
-            },
-            { showKeepOption: false }
-          );
-        } else {
-          await chrome.storage.local.set({ migrationAsked: true, migrationDecision: 'confirmed' });
-        }
-      }
-    } catch (err) {
-      console.error('Switch account failed:', err);
-      data = await loadData();
-      renderAll();
-    }
-  };
-
-  if (draftCollections.length > 0) {
-    renderMigrationModal(
-      draftCollections,
-      async (selections) => {
-        setSyncStatus('syncing');
-        try {
-          data = await migrateToCloud(data, selections);
-          await doSwitch();
-        } catch (err) {
-          console.error('Draft processing failed:', err);
-          setSyncStatus('error');
-        }
-      },
-      null,
-      {
-        titleKey: 'logoutDraftTitle',
-        messageKey: 'logoutDraftMsg',
-        confirmKey: 'switchAccount',
-        cancelKey: 'cancel',
-        showKeepOption: true
-      }
-    );
-    return;
-  }
-
-  await doSwitch();
-}
-
-async function triggerSync() {
   const status = await getStatus();
   if (!status.isSignedIn) return;
 
   const overlay = document.getElementById('sync-overlay');
-
-  setSyncStatus('syncing');
+  setSyncStatus('checking');
+  syncInProgress = true;
   try {
     await backgroundSync(data, {
+      forcePull,
       onBeforePull() {
+        setSyncStatus('syncing');
         if (overlay) overlay.hidden = false;
+        setCloudSyncBlocking(true);
       },
       async onUpdated() {
         data = await loadData();
@@ -482,7 +413,23 @@ async function triggerSync() {
   } catch {
     setSyncStatus('error');
   } finally {
+    syncInProgress = false;
     if (overlay) overlay.hidden = true;
+    setCloudSyncBlocking(false);
+  }
+}
+
+function setCloudSyncBlocking(enabled) {
+  cloudSyncBlocking = enabled;
+  applyCloudSyncBlocking();
+}
+
+function applyCloudSyncBlocking() {
+  const cloudCards = document.querySelectorAll('.collection-card[data-sync-source="cloud"]');
+  for (const card of cloudCards) {
+    card.classList.toggle('cloud-sync-blocked', cloudSyncBlocking);
+    const overlay = card.querySelector('.cloud-sync-overlay');
+    if (overlay) overlay.hidden = !cloudSyncBlocking;
   }
 }
 
@@ -600,6 +547,8 @@ function renderCollectionsUI() {
       onRenameTab: handleRenameTab,
     }
   );
+
+  applyCloudSyncBlocking();
 }
 
 function renderAll() {
@@ -793,7 +742,7 @@ function handleMenuClick(e, col) {
               renderAll();
               setSyncStatus('synced');
             } catch (err) {
-              console.error('Upload to cloud failed:', err);
+              logError('Upload to cloud failed:', err);
               setSyncStatus('error');
             }
           },
@@ -1098,7 +1047,6 @@ function setupEventListeners() {
   // Auth
   document.getElementById('btn-sign-in').addEventListener('click', handleSignIn);
   document.getElementById('btn-sign-out').addEventListener('click', handleSignOut);
-  document.getElementById('btn-switch-account').addEventListener('click', handleSwitchAccount);
 
   document.getElementById('user-menu-trigger').addEventListener('click', () => {
     const dropdown = document.getElementById('user-dropdown');
@@ -1117,6 +1065,17 @@ function setupEventListeners() {
   document.getElementById('btn-settings').addEventListener('click', () => {
     const sd = document.getElementById('settings-dropdown');
     sd.hidden = !sd.hidden;
+  });
+
+  // Open in current tab toggle
+  const openCurrentToggle = document.getElementById('toggle-open-current');
+  chrome.storage.local.get('openInCurrentTab').then(({ openInCurrentTab: val }) => {
+    openInCurrentTab = !!val;
+    openCurrentToggle.checked = openInCurrentTab;
+  });
+  openCurrentToggle.addEventListener('change', () => {
+    openInCurrentTab = openCurrentToggle.checked;
+    chrome.storage.local.set({ openInCurrentTab });
   });
 
   document.addEventListener('click', (e) => {
