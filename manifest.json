@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabZ",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "description": "Manage your browser tabs with collections",
   "permissions": ["tabs", "storage", "bookmarks", "identity"],
   "oauth2": {

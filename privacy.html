@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — TabZ</title>
+  <meta name="description" content="TabZ Privacy Policy — how we handle your data.">
+  <link rel="icon" type="image/png" href="./icons/icon48.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f1117;
+      --bg-card: #1a1c25;
+      --text: #e4e6ed;
+      --text-muted: #8b8fa3;
+      --accent: #7c83ff;
+      --accent-light: #a5aaff;
+      --border: #2e3140;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 17, 23, .85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-brand img { width: 28px; height: 28px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-back {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .2s;
+    }
+    .nav-back:hover { color: var(--text); }
+    .lang-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b8fa3'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+    .lang-select:hover { border-color: var(--accent); color: var(--text); }
+    .lang-select option { background: var(--bg-card); color: var(--text); }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 120px 32px 80px;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 12px;
+    }
+    .page-header h1 span { color: var(--accent); }
+    .page-header p { color: var(--text-muted); font-size: 14px; }
+
+    section { margin-bottom: 40px; }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent-light);
+    }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { list-style: none; padding: 0; margin: 0 0 12px; }
+    ul li {
+      color: var(--text-muted);
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="./index.html" class="nav-brand">
+      <img src="./icons/icon48.png" alt="TabZ icon">
+      TabZ
+    </a>
+    <div class="nav-right">
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="ja">日本語</option>
+      </select>
+      <a href="./index.html" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="navBack">Back to home</span>
+      </a>
+    </div>
+  </nav>
+
+  <main>
+
+    <div class="page-header">
+      <h1 data-i18n-html="pageTitle">Privacy <span>Policy</span></h1>
+      <p data-i18n="pageSubtitle">Last updated: April 2025 · Applies to TabZ Chrome Extension</p>
+    </div>
+
+    <section>
+      <h2 data-i18n="s1Title">Overview</h2>
+      <p data-i18n="s1Desc">TabZ is a Chrome extension that replaces your new tab page with a visual tab and bookmark manager. We are committed to protecting your privacy. This policy explains what data is accessed, how it is used, and what is never collected.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s2Title">Data We Access</h2>
+      <div class="card">
+        <ul>
+          <li data-i18n-html="s2i1"><strong>Browser tabs</strong> — read-only access to display your open tabs in the sidebar and save them to collections. Tab data never leaves your device unless you explicitly sync to Google Drive.</li>
+          <li data-i18n-html="s2i2"><strong>Chrome bookmarks</strong> — read and write access to store your collections as Chrome bookmarks and to support linked bookmark folders. All bookmark data is stored locally in your browser.</li>
+          <li data-i18n-html="s2i3"><strong>Chrome local storage</strong> — used to persist settings, preferences, and local drafts on your device.</li>
+          <li data-i18n-html="s2i4"><strong>Google account (optional)</strong> — accessed only when you sign in with Google. We request your name and profile picture for display purposes, and your email to identify your account.</li>
+          <li data-i18n-html="s2i5"><strong>Google Drive (optional)</strong> — when signed in, your collections are saved as a single JSON file (<code>tabz-data.json</code>) in your own Google Drive. We use the <code>drive.file</code> scope, which limits access to only files created by TabZ — we cannot read any other files in your Drive.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 data-i18n="s3Title">Data We Do NOT Collect</h2>
+      <ul>
+        <li data-i18n="s3i1">We do not operate any servers or databases.</li>
+        <li data-i18n="s3i2">We do not transmit your data to any third party.</li>
+        <li data-i18n="s3i3">We do not collect analytics, usage metrics, or crash reports.</li>
+        <li data-i18n="s3i4">We do not use advertising or tracking technologies.</li>
+        <li data-i18n="s3i5">We do not sell, rent, or share your data with anyone.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 data-i18n="s4Title">Google Drive Sync</h2>
+      <p data-i18n="s4Desc">Google Drive sync is entirely optional. If you choose to sign in:</p>
+      <ul>
+        <li data-i18n-html="s4i1">Your data is stored as a file in <strong>your own Google Drive</strong> — it belongs to you.</li>
+        <li data-i18n-html="s4i2">TabZ uses the restricted <code>drive.file</code> scope, meaning it can only access files it created — not your existing Drive content.</li>
+        <li data-i18n-html="s4i3">You can revoke access at any time from <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account Permissions</a>.</li>
+        <li data-i18n="s4i4">Signing out of TabZ removes your credentials from local storage immediately.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 data-i18n="s5Title">Permissions Justification</h2>
+      <div class="card">
+        <ul>
+          <li data-i18n-html="s5i1"><strong>tabs</strong> — display your open tabs in the sidebar and save them to collections.</li>
+          <li data-i18n-html="s5i2"><strong>storage</strong> — persist settings and local drafts in your browser.</li>
+          <li data-i18n-html="s5i3"><strong>bookmarks</strong> — store collections as Chrome bookmarks and sync linked bookmark folders.</li>
+          <li data-i18n-html="s5i4"><strong>identity</strong> — authenticate with Google OAuth for Drive sync (only when you initiate sign-in).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 data-i18n="s6Title">Children's Privacy</h2>
+      <p data-i18n="s6Desc">TabZ is not directed at children under 13 and does not knowingly collect information from children.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s7Title">Changes to This Policy</h2>
+      <p data-i18n="s7Desc">If this policy changes materially, the updated version will be published at this URL with a revised date. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s8Title">Contact</h2>
+      <p data-i18n-html="s8Desc">Questions about this policy? Email us at <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p data-i18n-html="footer">TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">Home</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+  <script>
+    const i18n = {
+      en: {
+        navBack: 'Back to home',
+        pageTitle: 'Privacy <span>Policy</span>',
+        pageSubtitle: 'Last updated: April 2025 \u00b7 Applies to TabZ Chrome Extension',
+        s1Title: 'Overview',
+        s1Desc: 'TabZ is a Chrome extension that replaces your new tab page with a visual tab and bookmark manager. We are committed to protecting your privacy. This policy explains what data is accessed, how it is used, and what is never collected.',
+        s2Title: 'Data We Access',
+        s2i1: '<strong>Browser tabs</strong> \u2014 read-only access to display your open tabs in the sidebar and save them to collections. Tab data never leaves your device unless you explicitly sync to Google Drive.',
+        s2i2: '<strong>Chrome bookmarks</strong> \u2014 read and write access to store your collections as Chrome bookmarks and to support linked bookmark folders. All bookmark data is stored locally in your browser.',
+        s2i3: '<strong>Chrome local storage</strong> \u2014 used to persist settings, preferences, and local drafts on your device.',
+        s2i4: '<strong>Google account (optional)</strong> \u2014 accessed only when you sign in with Google. We request your name and profile picture for display purposes, and your email to identify your account.',
+        s2i5: '<strong>Google Drive (optional)</strong> \u2014 when signed in, your collections are saved as a single JSON file (<code>tabz-data.json</code>) in your own Google Drive. We use the <code>drive.file</code> scope, which limits access to only files created by TabZ \u2014 we cannot read any other files in your Drive.',
+        s3Title: 'Data We Do NOT Collect',
+        s3i1: 'We do not operate any servers or databases.',
+        s3i2: 'We do not transmit your data to any third party.',
+        s3i3: 'We do not collect analytics, usage metrics, or crash reports.',
+        s3i4: 'We do not use advertising or tracking technologies.',
+        s3i5: 'We do not sell, rent, or share your data with anyone.',
+        s4Title: 'Google Drive Sync',
+        s4Desc: 'Google Drive sync is entirely optional. If you choose to sign in:',
+        s4i1: 'Your data is stored as a file in <strong>your own Google Drive</strong> \u2014 it belongs to you.',
+        s4i2: 'TabZ uses the restricted <code>drive.file</code> scope, meaning it can only access files it created \u2014 not your existing Drive content.',
+        s4i3: 'You can revoke access at any time from <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account Permissions</a>.',
+        s4i4: 'Signing out of TabZ removes your credentials from local storage immediately.',
+        s5Title: 'Permissions Justification',
+        s5i1: '<strong>tabs</strong> \u2014 display your open tabs in the sidebar and save them to collections.',
+        s5i2: '<strong>storage</strong> \u2014 persist settings and local drafts in your browser.',
+        s5i3: '<strong>bookmarks</strong> \u2014 store collections as Chrome bookmarks and sync linked bookmark folders.',
+        s5i4: '<strong>identity</strong> \u2014 authenticate with Google OAuth for Drive sync (only when you initiate sign-in).',
+        s6Title: "Children's Privacy",
+        s6Desc: 'TabZ is not directed at children under 13 and does not knowingly collect information from children.',
+        s7Title: 'Changes to This Policy',
+        s7Desc: 'If this policy changes materially, the updated version will be published at this URL with a revised date. Continued use of the extension after changes constitutes acceptance of the updated policy.',
+        s8Title: 'Contact',
+        s8Desc: 'Questions about this policy? Email us at <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>.',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">Home</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      },
+      'zh-TW': {
+        navBack: '回首頁',
+        pageTitle: '隱私權<span>政策</span>',
+        pageSubtitle: '最後更新：2025 年 4 月 \u00b7 適用於 TabZ Chrome 擴充功能',
+        s1Title: '概覽',
+        s1Desc: 'TabZ 是一款 Chrome 擴充功能，將新分頁替換為視覺化的分頁與書籤管理器。我們致力於保護你的隱私。本政策說明存取了哪些資料、如何使用，以及從不收集的內容。',
+        s2Title: '我們存取的資料',
+        s2i1: '<strong>瀏覽器分頁</strong> \u2014 唯讀存取，用於在側邊欄顯示已開啟的分頁並儲存至收藏。除非你明確選擇同步至 Google 雲端硬碟，否則分頁資料不會離開你的裝置。',
+        s2i2: '<strong>Chrome 書籤</strong> \u2014 讀寫存取，用於將收藏儲存為 Chrome 書籤，以及支援連結書籤資料夾功能。所有書籤資料均儲存於你的瀏覽器本機。',
+        s2i3: '<strong>Chrome 本機儲存</strong> \u2014 用於在你的裝置上儲存設定、偏好與本機草稿。',
+        s2i4: '<strong>Google 帳號（選用）</strong> \u2014 僅在你主動登入 Google 時才會存取。我們會取得你的姓名與大頭貼用於顯示，以及電子郵件用於識別帳號。',
+        s2i5: '<strong>Google 雲端硬碟（選用）</strong> \u2014 登入後，你的收藏會以單一 JSON 檔案（<code>tabz-data.json</code>）儲存在你自己的 Google 雲端硬碟中。我們使用 <code>drive.file</code> 權限範圍，僅能存取 TabZ 所建立的檔案，無法讀取你雲端硬碟中的其他任何內容。',
+        s3Title: '我們不收集的資料',
+        s3i1: '我們不運作任何伺服器或資料庫。',
+        s3i2: '我們不會將你的資料傳送給任何第三方。',
+        s3i3: '我們不收集任何分析數據、使用指標或當機回報。',
+        s3i4: '我們不使用廣告或追蹤技術。',
+        s3i5: '我們不販售、出租或分享你的資料。',
+        s4Title: 'Google 雲端硬碟同步',
+        s4Desc: 'Google 雲端硬碟同步功能完全為選用。若你選擇登入：',
+        s4i1: '你的資料以檔案形式儲存在<strong>你自己的 Google 雲端硬碟</strong>，完全屬於你。',
+        s4i2: 'TabZ 使用受限的 <code>drive.file</code> 權限範圍，僅能存取由 TabZ 建立的檔案，無法存取你既有的雲端硬碟內容。',
+        s4i3: '你可以隨時至 <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google 帳號權限</a>撤銷授權。',
+        s4i4: '登出 TabZ 後，你的憑證會立即從本機儲存中移除。',
+        s5Title: '權限用途說明',
+        s5i1: '<strong>tabs</strong> \u2014 在側邊欄顯示已開啟的分頁，並將分頁儲存至收藏。',
+        s5i2: '<strong>storage</strong> \u2014 在瀏覽器中儲存設定與本機草稿。',
+        s5i3: '<strong>bookmarks</strong> \u2014 將收藏儲存為 Chrome 書籤，並同步連結的書籤資料夾。',
+        s5i4: '<strong>identity</strong> \u2014 用於 Drive 同步的 Google OAuth 驗證（僅在你主動登入時使用）。',
+        s6Title: '兒童隱私',
+        s6Desc: 'TabZ 並非針對 13 歲以下兒童設計，也不會刻意收集兒童的個人資訊。',
+        s7Title: '政策變更',
+        s7Desc: '若本政策有重大變更，更新後的版本將以修訂日期發布於此網址。在變更後繼續使用擴充功能，即表示接受更新後的政策。',
+        s8Title: '聯絡我們',
+        s8Desc: '對本隱私權政策有疑問？請來信 <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>。',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">首頁</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      },
+      ja: {
+        navBack: 'ホームに戻る',
+        pageTitle: 'プライバシー<span>ポリシー</span>',
+        pageSubtitle: '最終更新：2025年4月 \u00b7 TabZ Chrome 拡張機能に適用',
+        s1Title: '概要',
+        s1Desc: 'TabZ は、新しいタブページをビジュアルなタブ＆ブックマーク管理ツールに置き換える Chrome 拡張機能です。私たちはあなたのプライバシー保護に取り組んでいます。このポリシーでは、アクセスするデータ、その使用方法、および収集しない情報について説明します。',
+        s2Title: 'アクセスするデータ',
+        s2i1: '<strong>ブラウザのタブ</strong> \u2014 サイドバーに開いているタブを表示し、コレクションに保存するための読み取り専用アクセス。タブデータは、Google ドライブへの同期を明示的に選択しない限り、デバイスの外に出ることはありません。',
+        s2i2: '<strong>Chrome ブックマーク</strong> \u2014 コレクションを Chrome ブックマークとして保存し、リンクされたブックマークフォルダをサポートするための読み書きアクセス。すべてのブックマークデータはブラウザのローカルに保存されます。',
+        s2i3: '<strong>Chrome ローカルストレージ</strong> \u2014 設定、環境設定、ローカル草稿をデバイスに保持するために使用します。',
+        s2i4: '<strong>Google アカウント（任意）</strong> \u2014 Google でサインインした場合のみアクセスします。表示目的でお名前とプロフィール写真、アカウント識別のためメールアドレスを取得します。',
+        s2i5: '<strong>Google ドライブ（任意）</strong> \u2014 サインイン後、コレクションはあなた自身の Google ドライブに単一の JSON ファイル（<code>tabz-data.json</code>）として保存されます。<code>drive.file</code> スコープを使用しており、TabZ が作成したファイルのみにアクセスでき、ドライブ内の他のファイルは読み取れません。',
+        s3Title: '収集しないデータ',
+        s3i1: 'サーバーやデータベースは運用していません。',
+        s3i2: 'データを第三者に送信しません。',
+        s3i3: '分析データ、使用状況メトリクス、クラッシュレポートは収集しません。',
+        s3i4: '広告やトラッキング技術は使用しません。',
+        s3i5: 'データの販売、貸し出し、共有は一切行いません。',
+        s4Title: 'Google ドライブ同期',
+        s4Desc: 'Google ドライブ同期は完全に任意です。サインインを選択した場合：',
+        s4i1: 'データは<strong>あなた自身の Google ドライブ</strong>にファイルとして保存され、完全にあなたのものです。',
+        s4i2: 'TabZ は制限された <code>drive.file</code> スコープを使用しており、TabZ が作成したファイルのみにアクセスでき、既存のドライブコンテンツにはアクセスできません。',
+        s4i3: 'アクセス権は <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google アカウントの権限</a>からいつでも取り消せます。',
+        s4i4: 'TabZ からサインアウトすると、認証情報はすぐにローカルストレージから削除されます。',
+        s5Title: '権限の使用目的',
+        s5i1: '<strong>tabs</strong> \u2014 サイドバーに開いているタブを表示し、コレクションに保存します。',
+        s5i2: '<strong>storage</strong> \u2014 設定とローカル草稿をブラウザに保持します。',
+        s5i3: '<strong>bookmarks</strong> \u2014 コレクションを Chrome ブックマークとして保存し、リンクされたブックマークフォルダを同期します。',
+        s5i4: '<strong>identity</strong> \u2014 ドライブ同期のための Google OAuth 認証（サインインを開始した場合のみ使用）。',
+        s6Title: '子どものプライバシー',
+        s6Desc: 'TabZ は 13 歳未満の子ども向けではなく、子どもの情報を意図的に収集することはありません。',
+        s7Title: 'ポリシーの変更',
+        s7Desc: 'このポリシーに重要な変更がある場合、更新版は改訂日とともにこの URL に公開されます。変更後も拡張機能を継続して使用することは、更新されたポリシーへの同意とみなされます。',
+        s8Title: 'お問い合わせ',
+        s8Desc: 'このポリシーについてご質問は <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a> までご連絡ください。',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">ホーム</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      }
+    };
+
+    let currentLang = localStorage.getItem('tabz-site-lang') || 'en';
+    const selectEl = document.getElementById('lang-select');
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('tabz-site-lang', lang);
+      document.documentElement.lang = lang;
+      selectEl.value = lang;
+
+      const strings = i18n[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (strings[key]) el.textContent = strings[key];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.dataset.i18nHtml;
+        if (strings[key]) el.innerHTML = strings[key];
+      });
+    }
+
+    selectEl.addEventListener('change', (e) => applyLang(e.target.value));
+    applyLang(currentLang);
+  </script>
+
+</body>
+</html>
