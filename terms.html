@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — TabZ</title>
+  <meta name="description" content="TabZ Terms of Service.">
+  <link rel="icon" type="image/png" href="./icons/icon48.png">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f1117;
+      --bg-card: #1a1c25;
+      --text: #e4e6ed;
+      --text-muted: #8b8fa3;
+      --accent: #7c83ff;
+      --accent-light: #a5aaff;
+      --border: #2e3140;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 17, 23, .85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-brand img { width: 28px; height: 28px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-back {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .2s;
+    }
+    .nav-back:hover { color: var(--text); }
+    .lang-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b8fa3'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+    .lang-select:hover { border-color: var(--accent); color: var(--text); }
+    .lang-select option { background: var(--bg-card); color: var(--text); }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 120px 32px 80px;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 12px;
+    }
+    .page-header h1 span { color: var(--accent); }
+    .page-header p { color: var(--text-muted); font-size: 14px; }
+
+    section { margin-bottom: 40px; }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent-light);
+    }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { list-style: none; padding: 0; margin: 0 0 12px; }
+    ul li {
+      color: var(--text-muted);
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    ul li::before { content: '–'; position: absolute; left: 0; color: var(--accent); }
+
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="./index.html" class="nav-brand">
+      <img src="./icons/icon48.png" alt="TabZ icon">
+      TabZ
+    </a>
+    <div class="nav-right">
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="ja">日本語</option>
+      </select>
+      <a href="./index.html" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span data-i18n="navBack">Back to home</span>
+      </a>
+    </div>
+  </nav>
+
+  <main>
+
+    <div class="page-header">
+      <h1 data-i18n-html="pageTitle">Terms of <span>Service</span></h1>
+      <p data-i18n="pageSubtitle">Last updated: April 2025 · Applies to TabZ Chrome Extension</p>
+    </div>
+
+    <section>
+      <h2 data-i18n="s1Title">Acceptance of Terms</h2>
+      <p data-i18n="s1Desc">By installing or using TabZ, you agree to these Terms of Service. If you do not agree, please uninstall the extension.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s2Title">Description of Service</h2>
+      <p data-i18n="s2Desc">TabZ is a free Chrome extension that replaces your new tab page with a visual tab and bookmark manager. It optionally integrates with Google Drive for cross-device sync. The extension is provided as-is at no cost.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s3Title">Your Data</h2>
+      <p data-i18n="s3Desc">Your collections and settings are stored locally in your browser or in your own Google Drive account. We do not store your data on any servers. You are solely responsible for maintaining backups of your data. See our <a href="./privacy.html" data-i18n-link="privacyLink">Privacy Policy</a> for full details.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s4Title">Google Account & Drive</h2>
+      <p data-i18n="s4Desc">Google Drive sync is optional. When you sign in, TabZ accesses only files it has created in your Drive. You may revoke access at any time from your Google Account settings. Your use of Google services is also subject to Google's own Terms of Service.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s5Title">Acceptable Use</h2>
+      <p data-i18n="s5p">You agree not to:</p>
+      <ul>
+        <li data-i18n="s5i1">Reverse engineer, decompile, or modify the extension for redistribution</li>
+        <li data-i18n="s5i2">Use the extension in any way that violates applicable laws or regulations</li>
+        <li data-i18n="s5i3">Attempt to interfere with the proper functioning of the extension</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 data-i18n="s6Title">Disclaimer of Warranties</h2>
+      <p data-i18n="s6Desc">TabZ is provided "as is" without warranties of any kind. We do not guarantee that the extension will be error-free, uninterrupted, or compatible with all systems. Use at your own risk.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s7Title">Limitation of Liability</h2>
+      <p data-i18n="s7Desc">To the fullest extent permitted by law, the developer of TabZ shall not be liable for any indirect, incidental, or consequential damages arising from your use of the extension, including any loss of data.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s8Title">Changes to Terms</h2>
+      <p data-i18n="s8Desc">We may update these terms from time to time. The updated version will be published at this URL with a revised date. Continued use of the extension after changes constitutes acceptance of the new terms.</p>
+    </section>
+
+    <section>
+      <h2 data-i18n="s9Title">Contact</h2>
+      <p data-i18n-html="s9Desc">Questions about these terms? Email us at <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p data-i18n-html="footer">TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">Home</a> &nbsp;&middot;&nbsp; <a href="./privacy.html">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+  <script>
+    const i18n = {
+      en: {
+        navBack: 'Back to home',
+        pageTitle: 'Terms of <span>Service</span>',
+        pageSubtitle: 'Last updated: April 2025 \u00b7 Applies to TabZ Chrome Extension',
+        s1Title: 'Acceptance of Terms',
+        s1Desc: 'By installing or using TabZ, you agree to these Terms of Service. If you do not agree, please uninstall the extension.',
+        s2Title: 'Description of Service',
+        s2Desc: 'TabZ is a free Chrome extension that replaces your new tab page with a visual tab and bookmark manager. It optionally integrates with Google Drive for cross-device sync. The extension is provided as-is at no cost.',
+        s3Title: 'Your Data',
+        s3Desc: 'Your collections and settings are stored locally in your browser or in your own Google Drive account. We do not store your data on any servers. You are solely responsible for maintaining backups of your data. See our Privacy Policy for full details.',
+        s4Title: 'Google Account & Drive',
+        s4Desc: 'Google Drive sync is optional. When you sign in, TabZ accesses only files it has created in your Drive. You may revoke access at any time from your Google Account settings. Your use of Google services is also subject to Google\u2019s own Terms of Service.',
+        s5Title: 'Acceptable Use',
+        s5p: 'You agree not to:',
+        s5i1: 'Reverse engineer, decompile, or modify the extension for redistribution',
+        s5i2: 'Use the extension in any way that violates applicable laws or regulations',
+        s5i3: 'Attempt to interfere with the proper functioning of the extension',
+        s6Title: 'Disclaimer of Warranties',
+        s6Desc: 'TabZ is provided "as is" without warranties of any kind. We do not guarantee that the extension will be error-free, uninterrupted, or compatible with all systems. Use at your own risk.',
+        s7Title: 'Limitation of Liability',
+        s7Desc: 'To the fullest extent permitted by law, the developer of TabZ shall not be liable for any indirect, incidental, or consequential damages arising from your use of the extension, including any loss of data.',
+        s8Title: 'Changes to Terms',
+        s8Desc: 'We may update these terms from time to time. The updated version will be published at this URL with a revised date. Continued use of the extension after changes constitutes acceptance of the new terms.',
+        s9Title: 'Contact',
+        s9Desc: 'Questions about these terms? Email us at <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>.',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">Home</a> &nbsp;&middot;&nbsp; <a href="./privacy.html">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      },
+      'zh-TW': {
+        navBack: '回首頁',
+        pageTitle: '服務<span>條款</span>',
+        pageSubtitle: '最後更新：2025 年 4 月 \u00b7 適用於 TabZ Chrome 擴充功能',
+        s1Title: '條款接受',
+        s1Desc: '安裝或使用 TabZ 即表示你同意本服務條款。如不同意，請解除安裝擴充功能。',
+        s2Title: '服務說明',
+        s2Desc: 'TabZ 是一款免費的 Chrome 擴充功能，將新分頁替換為視覺化的分頁與書籤管理器，並可選擇整合 Google 雲端硬碟進行跨裝置同步。本擴充功能以現狀提供，完全免費。',
+        s3Title: '你的資料',
+        s3Desc: '你的收藏與設定儲存於本機瀏覽器或你自己的 Google 雲端硬碟帳號中。我們不會在任何伺服器上儲存你的資料。你自行負責資料的備份。詳情請參閱隱私權政策。',
+        s4Title: 'Google 帳號與雲端硬碟',
+        s4Desc: 'Google 雲端硬碟同步功能為選用。登入後，TabZ 僅會存取由其建立的雲端硬碟檔案。你可隨時在 Google 帳號設定中撤銷授權。使用 Google 服務亦受 Google 自身服務條款約束。',
+        s5Title: '使用規範',
+        s5p: '你同意不得：',
+        s5i1: '對擴充功能進行逆向工程、反編譯或修改後再散布',
+        s5i2: '以任何違反適用法律或法規的方式使用擴充功能',
+        s5i3: '嘗試干擾擴充功能的正常運作',
+        s6Title: '免責聲明',
+        s6Desc: 'TabZ 以「現狀」提供，不提供任何形式的保證。我們不保證擴充功能無錯誤、不中斷或與所有系統相容。使用風險由你自行承擔。',
+        s7Title: '責任限制',
+        s7Desc: '在法律允許的最大範圍內，TabZ 開發者對於因使用本擴充功能所產生的任何間接、附帶或衍生損害（包括資料遺失）概不負責。',
+        s8Title: '條款變更',
+        s8Desc: '我們可能不定期更新本條款。更新後的版本將以修訂日期發布於此網址。在變更後繼續使用擴充功能，即表示接受新條款。',
+        s9Title: '聯絡我們',
+        s9Desc: '對本服務條款有疑問？請來信 <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a>。',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">首頁</a> &nbsp;&middot;&nbsp; <a href="./privacy.html">隱私權政策</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      },
+      ja: {
+        navBack: 'ホームに戻る',
+        pageTitle: '利用規約<span></span>',
+        pageSubtitle: '最終更新：2025年4月 \u00b7 TabZ Chrome 拡張機能に適用',
+        s1Title: '規約への同意',
+        s1Desc: 'TabZ をインストールまたは使用することで、本利用規約に同意したものとみなされます。同意しない場合は、拡張機能をアンインストールしてください。',
+        s2Title: 'サービスの説明',
+        s2Desc: 'TabZ は、新しいタブページをビジュアルなタブ＆ブックマーク管理ツールに置き換える無料の Chrome 拡張機能です。オプションで Google ドライブと連携してデバイス間で同期できます。拡張機能は現状のまま、無料で提供されます。',
+        s3Title: 'あなたのデータ',
+        s3Desc: 'コレクションと設定はブラウザのローカル、またはあなた自身の Google ドライブアカウントに保存されます。サーバーにデータを保存することはありません。データのバックアップはご自身の責任で行ってください。詳細はプライバシーポリシーをご覧ください。',
+        s4Title: 'Google アカウントとドライブ',
+        s4Desc: 'Google ドライブ同期は任意です。サインイン後、TabZ はドライブ内の自身が作成したファイルのみにアクセスします。Google アカウント設定からいつでもアクセスを取り消せます。Google サービスの利用は Google 自身の利用規約にも従います。',
+        s5Title: '利用規定',
+        s5p: '以下の行為を行わないことに同意します：',
+        s5i1: '拡張機能のリバースエンジニアリング、逆コンパイル、または再配布目的の改変',
+        s5i2: '適用される法律や規制に違反する方法での拡張機能の使用',
+        s5i3: '拡張機能の正常な動作を妨害しようとする行為',
+        s6Title: '保証の免責',
+        s6Desc: 'TabZ は「現状のまま」提供され、いかなる種類の保証もありません。拡張機能がエラーなく動作すること、中断しないこと、またはすべてのシステムと互換性があることを保証しません。ご使用はご自身の責任において行ってください。',
+        s7Title: '責任の制限',
+        s7Desc: '法律で許可される最大限の範囲において、TabZ の開発者はデータの損失を含む、拡張機能の使用から生じるいかなる間接的、付随的、または結果的損害についても責任を負いません。',
+        s8Title: '規約の変更',
+        s8Desc: '本規約は随時更新される場合があります。更新版は改訂日とともにこの URL に公開されます。変更後も拡張機能を継続して使用することは、新しい規約への同意とみなされます。',
+        s9Title: 'お問い合わせ',
+        s9Desc: '本利用規約についてご質問は <a href="mailto:chu2815@gmail.com">chu2815@gmail.com</a> までご連絡ください。',
+        footer: 'TabZ &copy; 2025 &nbsp;&middot;&nbsp; <a href="./index.html">ホーム</a> &nbsp;&middot;&nbsp; <a href="./privacy.html">プライバシーポリシー</a> &nbsp;&middot;&nbsp; <a href="https://github.com/ianccy/TabZ" target="_blank" rel="noopener">GitHub</a>',
+      }
+    };
+
+    let currentLang = localStorage.getItem('tabz-site-lang') || 'en';
+    const selectEl = document.getElementById('lang-select');
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('tabz-site-lang', lang);
+      document.documentElement.lang = lang;
+      selectEl.value = lang;
+
+      const strings = i18n[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (strings[key]) el.textContent = strings[key];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.dataset.i18nHtml;
+        if (strings[key]) el.innerHTML = strings[key];
+      });
+    }
+
+    selectEl.addEventListener('change', (e) => applyLang(e.target.value));
+    applyLang(currentLang);
+  </script>
+
+</body>
+</html>
