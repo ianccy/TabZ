@@ -1887,3 +1887,233 @@ body.has-bg-image .collection-tabs > .tab-item {
 @keyframes sync-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Tutorial */
+#tutorial-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+#tutorial-root.active {
+  pointer-events: all;
+}
+
+/* Welcome modal (Step 0) */
+.tutorial-welcome-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-welcome-card {
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #222);
+  border-radius: 14px;
+  padding: 28px 32px;
+  width: 340px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.tutorial-welcome-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+.tutorial-welcome-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.tutorial-welcome-body {
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.tutorial-welcome-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.tutorial-btn-primary {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.tutorial-btn-primary:hover {
+  opacity: 0.88;
+}
+.tutorial-btn-skip {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.tutorial-btn-skip:hover {
+  color: var(--text-primary, #444);
+}
+
+/* Info-only step overlay (Steps 2, 3) */
+.tutorial-info-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-info-card {
+  background: var(--card-bg, #fff);
+  color: var(--text-primary, #222);
+  border-radius: 12px;
+  padding: 22px 26px;
+  width: 300px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+}
+.tutorial-info-step {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent, #6366f1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.tutorial-info-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.tutorial-info-body {
+  font-size: 13px;
+  color: var(--text-secondary, #555);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.tutorial-info-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Spotlight steps (Steps 1, 4, 5) */
+.tutorial-spotlight {
+  position: absolute;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  transition: top 0.25s, left 0.25s, width 0.25s, height 0.25s;
+}
+
+.tutorial-tooltip {
+  position: absolute;
+  background: #1e1b4b;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  width: 220px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  line-height: 1.5;
+  pointer-events: all;
+}
+.tutorial-tooltip::before {
+  content: '';
+  position: absolute;
+  border: 7px solid transparent;
+}
+.tutorial-tooltip.arrow-top::before {
+  bottom: 100%;
+  left: 20px;
+  border-bottom-color: #1e1b4b;
+}
+.tutorial-tooltip.arrow-bottom::before {
+  top: 100%;
+  left: 20px;
+  border-top-color: #1e1b4b;
+}
+.tutorial-tooltip.arrow-left::before {
+  right: 100%;
+  top: 16px;
+  border-right-color: #1e1b4b;
+}
+.tutorial-tooltip.arrow-right::before {
+  left: 100%;
+  top: 16px;
+  border-left-color: #1e1b4b;
+}
+.tutorial-tooltip-step {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.tutorial-tooltip-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.tutorial-tooltip-body {
+  font-size: 12px;
+  color: #c7d2fe;
+  margin-bottom: 12px;
+}
+.tutorial-tooltip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Progress dots */
+.tutorial-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+.tutorial-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background 0.2s;
+}
+.tutorial-dot.active {
+  background: var(--accent, #6366f1);
+}
+
+/* Language switcher in welcome card */
+.tutorial-lang-switcher {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.tutorial-lang-select {
+  border: 1px solid var(--border, #e0e0e8);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--text-primary, #333);
+  background: var(--card-bg, #fff);
+  cursor: pointer;
+  outline: none;
+}
+.tutorial-lang-select:focus {
+  border-color: var(--accent, #6366f1);
+}

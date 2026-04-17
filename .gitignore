@@ -37,3 +37,6 @@ Thumbs.db
 .cache/
 
 docs/
+.worktrees/
+.superpowers/
+*.zip
