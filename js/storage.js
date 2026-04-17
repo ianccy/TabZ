@@ -7,7 +7,7 @@ import {
 import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
 import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists, cancelPendingPush } from './driveSync.js';
-import { logError } from './logger.js';
+import { logError, IS_DEV_BUILD } from './logger.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -226,7 +226,7 @@ export async function loadData() {
 
     return { collections: allCollections, collectionOrder };
   } catch (err) {
-    showError(t('loadError', err.message));
+    showError(IS_DEV_BUILD ? t('loadError', err.message) : t('loadError', ''));
     return { collections: [], collectionOrder: [] };
   }
 }
@@ -274,7 +274,7 @@ export async function saveUIState(data) {
       }
     });
   } catch (err) {
-    showError(t('saveError', err.message));
+    showError(IS_DEV_BUILD ? t('saveError', err.message) : t('saveError', ''));
   }
 }
 
