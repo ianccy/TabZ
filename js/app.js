@@ -15,7 +15,7 @@ import {
   DEFAULT_COLORS, DEFAULT_ICONS
 } from './storage.js';
 
-import { logError } from './logger.js';
+import { logError, IS_DEV_BUILD } from './logger.js';
 
 import {
   renderOpenTabs, renderCollections, renderAddDropdown, closeDropdown,
@@ -330,11 +330,12 @@ async function handleSignIn() {
     const msg = String(err?.message || err || '');
     if (/bad client id/i.test(msg)) {
       const manifest = chrome.runtime.getManifest();
-      const extId = chrome.runtime.id;
-      const clientId = manifest?.oauth2?.client_id || '';
+      const errorMsg = IS_DEV_BUILD
+        ? t('oauthClientIdErrorMsg', chrome.runtime.id, manifest?.oauth2?.client_id || '')
+        : t('oauthClientIdErrorMsgProd');
       renderModal(
         t('oauthClientIdErrorTitle'),
-        t('oauthClientIdErrorMsg', extId, clientId),
+        errorMsg,
         [{ label: t('confirm'), style: 'primary' }]
       );
       return;
