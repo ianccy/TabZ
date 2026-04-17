@@ -31,6 +31,8 @@ import { t, loadLang, saveLang, getLang, getAvailableLangs } from './i18n.js';
 
 import { getBookmarkTree, getRootFolderId } from './bookmarks.js';
 
+import { initTutorial, startTutorial } from './tutorial.js';
+
 let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
@@ -213,6 +215,8 @@ function applyStaticI18n() {
   if (bgResetBtn) bgResetBtn.textContent = t('bgReset');
   const bgRemoveBtn = document.getElementById('bg-remove-image-btn');
   if (bgRemoveBtn) bgRemoveBtn.title = t('bgRemoveImage');
+  const tutorialLabel = document.getElementById('settings-tutorial-label');
+  if (tutorialLabel) tutorialLabel.textContent = t('tutorialBtn');
   const signInBtn = document.getElementById('btn-sign-in');
   if (signInBtn) signInBtn.textContent = t('signIn');
   const signOutBtn = document.getElementById('btn-sign-out');
@@ -469,6 +473,13 @@ function setupLangSelector() {
   });
 }
 
+// === Tutorial lang change ===
+
+document.addEventListener('tabz:lang-changed', () => {
+  applyStaticI18n();
+  renderAll();
+});
+
 // === Initialization ===
 
 async function init() {
@@ -490,6 +501,7 @@ async function init() {
 
   await initAuth();
   triggerSync();
+  await initTutorial();
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') triggerSync();
@@ -1067,6 +1079,14 @@ function setupEventListeners() {
     const sd = document.getElementById('settings-dropdown');
     sd.hidden = !sd.hidden;
   });
+
+  const tutorialBtn = document.getElementById('btn-tutorial');
+  if (tutorialBtn) {
+    tutorialBtn.addEventListener('click', () => {
+      document.getElementById('settings-dropdown').hidden = true;
+      startTutorial();
+    });
+  }
 
   // Open in current tab toggle
   const openCurrentToggle = document.getElementById('toggle-open-current');
