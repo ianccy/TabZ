@@ -55,7 +55,7 @@ async function ensureRoot() {
   return rootFolderId;
 }
 
-async function loadCloudData() {
+export async function loadCloudData() {
   const { cloudData } = await chrome.storage.local.get('cloudData');
   if (!cloudData) return { ...CLOUD_TEMPLATE, lastModified: Date.now() };
   return {
@@ -70,7 +70,7 @@ async function loadCloudData() {
   };
 }
 
-async function saveCloudData(cloudData, options = {}) {
+export async function saveCloudData(cloudData, options = {}) {
   cloudData.lastModified = Date.now();
   await chrome.storage.local.set({
     cloudData,

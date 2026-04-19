@@ -3,6 +3,7 @@ import { getStatus as getAuthStatus } from './auth.js';
 import { uploadBgImage, downloadBgImage, deleteBgImage } from './driveSync.js';
 import { logError } from './logger.js';
 import { saveBgToCache, loadBgFromCache, clearBgCache as clearBgCacheDB } from './bgCache.js';
+import { loadCloudData, saveCloudData } from './storage.js';
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -59,4 +60,34 @@ async function applyCachedBackground() {
 
 export async function initBackgroundImage() {
   await applyCachedBackground();
+}
+
+export async function uploadBackgroundImage(file) {
+  if (!ALLOWED_MIME.includes(file.type)) {
+    throw new Error(t('bgFileBadFormat'));
+  }
+  if (file.size > MAX_BYTES) {
+    throw new Error(t('bgFileTooBig'));
+  }
+
+  const status = await getAuthStatus();
+  if (!status.isSignedIn) {
+    throw new Error(t('bgUploadHint'));
+  }
+
+  const ext = MIME_EXT[file.type];
+  const fileName = `tabz-bg.${ext}`;
+
+  const cloudData = await loadCloudData();
+  const previousFileId = cloudData.background?.fileId || null;
+
+  const { fileId, modifiedTime } = await uploadBgImage(file, fileName, previousFileId);
+
+  cloudData.background = { fileId, fileName, modifiedTime };
+  await saveCloudData(cloudData, { immediate: true });
+
+  await saveBgToCache({ blob: file, fileId, modifiedTime });
+  applyBlobAsBackground(file);
+
+  await chrome.storage.local.remove('bgImage');
 }
