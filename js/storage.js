@@ -8,6 +8,7 @@ import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
 import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists, cancelPendingPush } from './driveSync.js';
 import { logError, IS_DEV_BUILD } from './logger.js';
+import { clearBgCache } from './bgCache.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -31,7 +32,8 @@ const CLOUD_TEMPLATE = {
   version: 1,
   lastModified: 0,
   collections: [],
-  uiState: { collapsed: {}, collectionOrder: [] }
+  uiState: { collapsed: {}, collectionOrder: [] },
+  background: null
 };
 
 export { DEFAULT_COLORS, DEFAULT_ICONS };
@@ -54,7 +56,7 @@ async function ensureRoot() {
   return rootFolderId;
 }
 
-async function loadCloudData() {
+export async function loadCloudData() {
   const { cloudData } = await chrome.storage.local.get('cloudData');
   if (!cloudData) return { ...CLOUD_TEMPLATE, lastModified: Date.now() };
   return {
@@ -64,11 +66,12 @@ async function loadCloudData() {
     uiState: {
       collapsed: cloudData.uiState?.collapsed || {},
       collectionOrder: cloudData.uiState?.collectionOrder || []
-    }
+    },
+    background: cloudData.background || null
   };
 }
 
-async function saveCloudData(cloudData, options = {}) {
+export async function saveCloudData(cloudData, options = {}) {
   cloudData.lastModified = Date.now();
   await chrome.storage.local.set({
     cloudData,
@@ -794,6 +797,7 @@ export async function handleUserLogout(options = {}) {
     'driveFileId',
     'driveFolderId'
   ]);
+  await clearBgCache();
 }
 
 function sanitizeCloudData(raw) {
@@ -804,7 +808,8 @@ function sanitizeCloudData(raw) {
     uiState: {
       collapsed: raw.uiState?.collapsed || {},
       collectionOrder: raw.uiState?.collectionOrder || []
-    }
+    },
+    background: raw.background || null
   };
 }
 
@@ -878,7 +883,7 @@ export async function backgroundSync(data, { onBeforePull, onUpdated, forcePull 
     cloudLastModified: remoteModifiedTime
   });
 
-  if (onUpdated) onUpdated();
+  if (onUpdated) await onUpdated();
   return true;
 }
 

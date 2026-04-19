@@ -120,10 +120,15 @@
         <input type="text" id="bg-image-url-input" class="bg-image-url-input" placeholder="https://example.com/image.jpg">
         <button id="bg-image-url-apply" class="modal-btn primary">套用</button>
       </div>
+      <div class="bg-upload-separator"><span>或</span></div>
+      <button id="bg-upload-btn" class="modal-btn primary bg-upload-btn">上傳圖片</button>
+      <div id="bg-upload-hint" class="bg-upload-hint" hidden>登入 Google 帳號即可上傳</div>
+      <div id="bg-upload-status" class="bg-upload-status" hidden></div>
     </div>
   </div>
   <div id="dropdown-overlay" class="dropdown-overlay" hidden></div>
   <input type="file" id="import-file-input" accept=".json" hidden>
+  <input type="file" id="bg-upload-input" accept="image/jpeg,image/png,image/webp" hidden>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

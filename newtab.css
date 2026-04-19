@@ -66,13 +66,23 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  min-height: 100vh;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 /* === Top Bar === */
@@ -83,6 +93,7 @@ body {
   padding: 10px 28px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -295,7 +306,8 @@ body {
 /* === Main Layout === */
 .main-layout {
   display: flex;
-  height: calc(100vh - 49px);
+  flex: 1;
+  min-height: 0;
 }
 
 /* === Collections Area (Left) === */
@@ -1583,18 +1595,46 @@ body {
 
 /* Background customization - make areas semi-transparent when bg image is set */
 body.has-bg-image .topbar {
-  background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg-secondary) 45%, transparent);
+  backdrop-filter: blur(16px);
 }
 
 body.has-bg-image .open-tabs-sidebar {
-  background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg-secondary) 45%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+body.has-bg-image .search-bar {
+  background: color-mix(in srgb, var(--bg-input) 35%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+body.has-bg-image .sidebar-count {
+  background: color-mix(in srgb, var(--bg-input) 35%, transparent);
 }
 
 body.has-bg-image .collection-tabs > .tab-item {
-  background: color-mix(in srgb, var(--bg-surface) 90%, transparent);
-  backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+body.has-bg-image .open-tabs-list .tab-item {
+  background: color-mix(in srgb, var(--bg-open-tab) 45%, transparent);
+  backdrop-filter: blur(10px);
+  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+
+body.has-bg-image .open-tabs-list .tab-item:hover {
+  background: color-mix(in srgb, var(--bg-surface-hover) 65%, transparent);
+}
+
+body.has-bg-image .link-folder-btn {
+  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent) !important;
+  backdrop-filter: blur(8px);
+}
+
+body.has-bg-image .link-folder-btn:hover {
+  background: color-mix(in srgb, var(--accent-bg) 90%, transparent) !important;
 }
 
 /* === Auth & Sync === */
@@ -2116,4 +2156,64 @@ body.has-bg-image .collection-tabs > .tab-item {
 }
 .tutorial-lang-select:focus {
   border-color: var(--accent, #6366f1);
+}
+
+/* Background upload */
+.bg-upload-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 8px;
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+}
+.bg-upload-separator::before,
+.bg-upload-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, #e0e0e8);
+}
+.bg-upload-separator span {
+  padding: 0 8px;
+}
+.bg-upload-btn {
+  width: 100%;
+}
+.bg-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.bg-upload-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+}
+.bg-upload-status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+}
+.bg-upload-status.error {
+  color: var(--error, #d93025);
+}
+.bg-upload-status.loading {
+  color: var(--text-muted, #555);
+}
+.bg-upload-status.loading::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border-color, #e0e0e8);
+  border-top-color: var(--accent, #e8566d);
+  border-radius: 50%;
+  animation: bg-upload-spin 0.8s linear infinite;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+@keyframes bg-upload-spin {
+  to { transform: rotate(360deg); }
 }

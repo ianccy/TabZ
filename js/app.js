@@ -33,6 +33,14 @@ import { getBookmarkTree, getRootFolderId } from './bookmarks.js';
 
 import { initTutorial, startTutorial } from './tutorial.js';
 
+import {
+  initBackgroundImage,
+  uploadBackgroundImage,
+  removeBackgroundImage as removeUploadedBgImage,
+  syncBackgroundFromCloud,
+  getUploadedBgInfo
+} from './backgroundImage.js';
+
 let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
@@ -80,8 +88,18 @@ function setupBackgroundSettings() {
   const imageThumb = document.getElementById('bg-image-thumb');
   const imageName = document.getElementById('bg-image-name');
 
-  function showCurrentImage(url) {
+  let thumbObjectUrl = null;
+
+  function releaseThumbObjectUrl() {
+    if (thumbObjectUrl) {
+      URL.revokeObjectURL(thumbObjectUrl);
+      thumbObjectUrl = null;
+    }
+  }
+
+  function showCurrentImageUrl(url) {
     if (!url) { hideCurrentImage(); return; }
+    releaseThumbObjectUrl();
     imageThumb.src = url;
     imageThumb.onerror = () => hideCurrentImage();
     try {
@@ -92,25 +110,48 @@ function setupBackgroundSettings() {
     imageCurrent.hidden = false;
   }
 
+  function showCurrentImageBlob(blob, fileName) {
+    releaseThumbObjectUrl();
+    thumbObjectUrl = URL.createObjectURL(blob);
+    imageThumb.src = thumbObjectUrl;
+    imageThumb.onerror = () => hideCurrentImage();
+    imageName.textContent = fileName || 'tabz-bg';
+    imageCurrent.hidden = false;
+  }
+
   function hideCurrentImage() {
+    releaseThumbObjectUrl();
     imageCurrent.hidden = true;
     imageThumb.src = '';
     imageName.textContent = '';
     urlInput.value = '';
   }
 
+  async function refreshCurrentImage() {
+    const { bgImage } = await chrome.storage.local.get('bgImage');
+    if (bgImage) {
+      urlInput.value = bgImage;
+      showCurrentImageUrl(bgImage);
+      return;
+    }
+    const info = await getUploadedBgInfo();
+    if (info) {
+      showCurrentImageBlob(info.blob, info.fileName);
+      return;
+    }
+    hideCurrentImage();
+  }
+
   btn.addEventListener('click', async () => {
     const isHidden = panel.hidden;
     panel.hidden = !isHidden;
     if (isHidden) {
-      const { bgColor, bgImage } = await chrome.storage.local.get(['bgColor', 'bgImage']);
+      const { bgColor } = await chrome.storage.local.get('bgColor');
       colorInput.value = bgColor || '#f5f5f9';
-      if (bgImage) {
-        urlInput.value = bgImage;
-        showCurrentImage(bgImage);
-      } else {
-        hideCurrentImage();
-      }
+      hideUploadStatus();
+      await refreshCurrentImage();
+    } else {
+      releaseThumbObjectUrl();
     }
   });
 
@@ -119,7 +160,7 @@ function setupBackgroundSettings() {
   });
 
   document.addEventListener('click', (e) => {
-    if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) {
+    if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
       panel.hidden = true;
     }
   });
@@ -145,7 +186,12 @@ function setupBackgroundSettings() {
     await chrome.storage.local.set({ bgImage: url });
     await chrome.storage.local.remove('bgColor');
     applyBackground(null, url);
-    showCurrentImage(url);
+    try {
+      await removeUploadedBgImage();
+    } catch (err) {
+      logError('removeUploadedBgImage failed:', err);
+    }
+    showCurrentImageUrl(url);
   }
 
   urlApplyBtn.addEventListener('click', applyImageUrl);
@@ -157,6 +203,67 @@ function setupBackgroundSettings() {
     await chrome.storage.local.remove('bgImage');
     applyBackground(null, null);
     hideCurrentImage();
+    try {
+      await removeUploadedBgImage();
+    } catch (err) {
+      logError('removeUploadedBgImage failed:', err);
+    }
+  });
+
+  const uploadBtn = document.getElementById('bg-upload-btn');
+  const uploadInput = document.getElementById('bg-upload-input');
+  const uploadHint = document.getElementById('bg-upload-hint');
+  const uploadStatus = document.getElementById('bg-upload-status');
+
+  function setUploadAuthState(isSignedIn) {
+    uploadBtn.disabled = !isSignedIn;
+    uploadHint.hidden = isSignedIn;
+  }
+
+  getStatus().then((s) => setUploadAuthState(s.isSignedIn));
+  onStatusChange((s) => setUploadAuthState(s.isSignedIn));
+
+  function showUploadStatus(message, mode) {
+    uploadStatus.textContent = message;
+    uploadStatus.classList.remove('error', 'loading');
+    if (mode === 'error') uploadStatus.classList.add('error');
+    else if (mode === 'loading') uploadStatus.classList.add('loading');
+    uploadStatus.hidden = false;
+  }
+
+  function hideUploadStatus() {
+    uploadStatus.hidden = true;
+    uploadStatus.textContent = '';
+    uploadStatus.classList.remove('error', 'loading');
+  }
+
+  uploadInput.addEventListener('click', (e) => e.stopPropagation());
+
+  uploadBtn.addEventListener('click', () => {
+    if (uploadBtn.disabled) return;
+    uploadInput.value = '';
+    uploadInput.click();
+  });
+
+  uploadInput.addEventListener('change', async () => {
+    const file = uploadInput.files?.[0];
+    if (!file) return;
+
+    uploadBtn.disabled = true;
+    showUploadStatus(t('bgUploading'), 'loading');
+
+    try {
+      await uploadBackgroundImage(file);
+      await chrome.storage.local.remove('bgColor');
+      await refreshCurrentImage();
+      showUploadStatus(t('bgUploadSuccess'));
+      setTimeout(hideUploadStatus, 2000);
+    } catch (err) {
+      showUploadStatus(t('bgUploadError', err.message || String(err)), 'error');
+    } finally {
+      const s = await getStatus();
+      setUploadAuthState(s.isSignedIn);
+    }
   });
 }
 
@@ -215,6 +322,10 @@ function applyStaticI18n() {
   if (bgResetBtn) bgResetBtn.textContent = t('bgReset');
   const bgRemoveBtn = document.getElementById('bg-remove-image-btn');
   if (bgRemoveBtn) bgRemoveBtn.title = t('bgRemoveImage');
+  const bgUploadBtnEl = document.getElementById('bg-upload-btn');
+  if (bgUploadBtnEl) bgUploadBtnEl.textContent = t('bgUploadBtn');
+  const bgUploadHintEl = document.getElementById('bg-upload-hint');
+  if (bgUploadHintEl) bgUploadHintEl.textContent = t('bgUploadHint');
   const tutorialLabel = document.getElementById('settings-tutorial-label');
   if (tutorialLabel) tutorialLabel.textContent = t('tutorialBtn');
   const signInBtn = document.getElementById('btn-sign-in');
@@ -228,7 +339,15 @@ function applyStaticI18n() {
 async function initAuth() {
   const status = await getStatus();
   updateAuthUI(status);
-  onStatusChange(updateAuthUI);
+  if (status.isSignedIn) {
+    syncBackgroundFromCloud().catch((err) => logError('bg sync on startup failed:', err));
+  }
+  onStatusChange((next) => {
+    updateAuthUI(next);
+    if (next.isSignedIn) {
+      syncBackgroundFromCloud().catch((err) => logError('bg sync on sign-in failed:', err));
+    }
+  });
 }
 
 function updateAuthUI(status) {
@@ -279,6 +398,91 @@ function getLastSyncDisplay() {
   return t('minutesAgo', diff);
 }
 
+function promptMigrationSelections(collections, options) {
+  return new Promise((resolve) => {
+    renderMigrationModal(
+      collections,
+      (selections) => resolve(selections),
+      () => resolve(null),
+      { backdropCancel: true, ...options }
+    );
+  });
+}
+
+async function runTwoStepMigrationFlow(collections, options = {}) {
+  let rememberedSyncSelections = null;
+  const step1 = {
+    titleKey: options.step1TitleKey || 'migrationTitle',
+    messageKey: options.step1MessageKey || 'migrationMsgStep1',
+    confirmKey: options.step1ConfirmKey || 'nextStep',
+    confirmWhenNoneKey: options.step1ConfirmWhenNoneKey || null,
+    cancelKey: options.step1CancelKey || 'cancel',
+    warningKey: options.step1WarningKey,
+    defaultSyncChecked: options.step1DefaultSyncChecked === true,
+    showSyncOption: true,
+    showKeepOption: false
+  };
+
+  const step2 = {
+    titleKey: options.step2TitleKey || 'migrationKeepTitle',
+    messageKey: options.step2MessageKey || 'migrationKeepMsg',
+    confirmKey: options.step2ConfirmKey || 'migrationConfirm',
+    cancelKey: options.step2CancelKey || 'backStep',
+    warningKey: options.step2WarningKey,
+    showSyncOption: false,
+    showKeepOption: true
+  };
+
+  while (true) {
+    const syncSelections = await promptMigrationSelections(collections, {
+      ...step1,
+      initialSelections: rememberedSyncSelections
+    });
+    if (!syncSelections) return null;
+    rememberedSyncSelections = syncSelections;
+
+    const syncMap = new Map(syncSelections.map(s => [s.collectionId, s.sync === true]));
+    const syncedCollections = collections.filter(col => syncMap.get(col.id) === true);
+
+    if (syncedCollections.length === 0) {
+      return syncSelections.map(s => ({
+        collectionId: s.collectionId,
+        sync: false,
+        keep: true
+      }));
+    }
+
+    const carrySyncOnly = syncSelections.map(s => ({
+      collectionId: s.collectionId,
+      sync: s.sync
+    }));
+
+    const finalSelections = await promptMigrationSelections(syncedCollections, {
+      ...step2,
+      initialSelections: carrySyncOnly
+    });
+    if (!finalSelections) continue;
+
+    const finalMap = new Map(finalSelections.map(s => [s.collectionId, s]));
+    return syncSelections.map(s => {
+      if (s.sync !== true) {
+        return {
+          collectionId: s.collectionId,
+          sync: false,
+          keep: true
+        };
+      }
+
+      const detail = finalMap.get(s.collectionId);
+      return {
+        collectionId: s.collectionId,
+        sync: true,
+        keep: detail?.keep !== false
+      };
+    });
+  }
+}
+
 async function handleSignIn() {
   const signInBtn = document.getElementById('btn-sign-in');
   if (signInBtn) {
@@ -304,27 +508,36 @@ async function handleSignIn() {
       const localCollections = data.collections.filter(c => !c.linked && c.status === 'local');
       if (localCollections.length > 0) {
         await setMigrationPending();
-        renderMigrationModal(
-          localCollections,
-          async (selections) => {
-            setSyncStatus('syncing');
-            try {
-              data = await migrateToCloud(data, selections);
-              renderAll();
-              setSyncStatus('synced');
-            } catch (err) {
-              logError('Migration failed:', err);
-              setSyncStatus('error');
-              renderModal(t('migrationTitle'), t('migrationError'), [
-                { label: t('confirm'), style: 'primary' }
-              ]);
-            }
-          },
-          async () => {
-            await setMigrationAsked('cancelled');
-          },
-          { showKeepOption: false }
-        );
+        const selections = await runTwoStepMigrationFlow(localCollections, {
+          step1TitleKey: 'migrationTitle',
+          step1MessageKey: 'migrationMsgStep1',
+          step1ConfirmKey: 'nextStep',
+          step1ConfirmWhenNoneKey: 'skipAndFinish',
+          step1CancelKey: 'migrationCancel',
+          step1WarningKey: 'migrationWarning',
+          step1DefaultSyncChecked: false,
+          step2TitleKey: 'migrationKeepTitle',
+          step2MessageKey: 'migrationKeepMsg',
+          step2ConfirmKey: 'submit',
+          step2CancelKey: 'backStep'
+        });
+
+        if (!selections) {
+          await setMigrationAsked('cancelled');
+        } else {
+          setSyncStatus('syncing');
+          try {
+            data = await migrateToCloud(data, selections);
+            renderAll();
+            setSyncStatus('synced');
+          } catch (err) {
+            logError('Migration failed:', err);
+            setSyncStatus('error');
+            renderModal(t('migrationTitle'), t('migrationError'), [
+              { label: t('confirm'), style: 'primary' }
+            ]);
+          }
+        }
       } else {
         await chrome.storage.local.set({ migrationAsked: true, migrationDecision: 'confirmed' });
       }
@@ -364,28 +577,28 @@ async function handleSignOut() {
   };
 
   if (draftCount > 0) {
-    renderMigrationModal(
-      draftCollections,
-      async (selections) => {
-        setSyncStatus('syncing');
-        try {
-          data = await migrateToCloud(data, selections);
-        } catch (err) {
-          logError('Logout draft processing failed:', err);
-        }
-        await finalize(false);
-      },
-      async () => {
-        await finalize(false);
-      },
-      {
-        titleKey: 'logoutDraftTitle',
-        messageKey: 'logoutDraftMsg',
-        confirmKey: 'signOut',
-        cancelKey: 'cancel',
-        showKeepOption: true
-      }
-    );
+    const selections = await runTwoStepMigrationFlow(draftCollections, {
+      step1TitleKey: 'logoutDraftTitle',
+      step1MessageKey: 'logoutDraftMsgStep1',
+      step1ConfirmKey: 'nextStep',
+      step1ConfirmWhenNoneKey: 'confirmAndSignOut',
+      step1CancelKey: 'cancel',
+      step1DefaultSyncChecked: false,
+      step2TitleKey: 'logoutDraftKeepTitle',
+      step2MessageKey: 'logoutDraftKeepMsg',
+      step2ConfirmKey: 'confirmAndSignOut',
+      step2CancelKey: 'backStep'
+    });
+
+    if (!selections) return;
+
+    setSyncStatus('syncing');
+    try {
+      data = await migrateToCloud(data, selections);
+    } catch (err) {
+      logError('Logout draft processing failed:', err);
+    }
+    await finalize(false);
     return;
   }
 
@@ -412,6 +625,7 @@ async function triggerSync({ forcePull = false } = {}) {
       async onUpdated() {
         data = await loadData();
         renderAll();
+        await syncBackgroundFromCloud();
       }
     });
     setSyncStatus('synced');
@@ -485,6 +699,7 @@ document.addEventListener('tabz:lang-changed', () => {
 async function init() {
   await initTheme();
   await initBackground();
+  await initBackgroundImage();
   await loadLang();
   data = await loadData();
   await refreshOpenTabs();
