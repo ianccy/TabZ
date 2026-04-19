@@ -2117,3 +2117,45 @@ body.has-bg-image .collection-tabs > .tab-item {
 .tutorial-lang-select:focus {
   border-color: var(--accent, #6366f1);
 }
+
+/* Background upload */
+.bg-upload-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 8px;
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+}
+.bg-upload-separator::before,
+.bg-upload-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border, #e0e0e8);
+}
+.bg-upload-separator span {
+  padding: 0 8px;
+}
+.bg-upload-btn {
+  width: 100%;
+}
+.bg-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.bg-upload-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+}
+.bg-upload-status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+}
+.bg-upload-status.error {
+  color: var(--error, #d93025);
+}
