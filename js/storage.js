@@ -8,6 +8,7 @@ import { t } from './i18n.js';
 import { getStatus as getAuthStatus } from './auth.js';
 import { push as drivePush, pull as drivePull, getRemoteModifiedTime, isRemoteNewer, exists as driveExists, cancelPendingPush } from './driveSync.js';
 import { logError, IS_DEV_BUILD } from './logger.js';
+import { clearBgCache } from './bgCache.js';
 
 const DEFAULT_COLORS = [
   '#7c83ff', '#ff7eb3', '#7ecfff', '#7eff83',
@@ -796,6 +797,7 @@ export async function handleUserLogout(options = {}) {
     'driveFileId',
     'driveFolderId'
   ]);
+  await clearBgCache();
 }
 
 function sanitizeCloudData(raw) {
