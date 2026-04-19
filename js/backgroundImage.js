@@ -109,3 +109,41 @@ export async function removeBackgroundImage() {
   await saveCloudData(cloudData, { immediate: true });
   await clearBgCache();
 }
+
+export async function syncBackgroundFromCloud() {
+  const status = await getAuthStatus();
+  if (!status.isSignedIn) return;
+
+  const cloudData = await loadCloudData();
+  const remoteMeta = cloudData.background;
+  const localEntry = await loadBgFromCache().catch(() => null);
+
+  if (!remoteMeta) {
+    if (localEntry) {
+      await clearBgCache();
+    }
+    return;
+  }
+
+  if (localEntry && localEntry.fileId === remoteMeta.fileId) {
+    return;
+  }
+
+  try {
+    const blob = await downloadBgImage(remoteMeta.fileId);
+    if (!blob) {
+      cloudData.background = null;
+      await saveCloudData(cloudData, { immediate: true });
+      await clearBgCache();
+      return;
+    }
+    await saveBgToCache({
+      blob,
+      fileId: remoteMeta.fileId,
+      modifiedTime: remoteMeta.modifiedTime
+    });
+    applyBlobAsBackground(blob);
+  } catch (err) {
+    logError('syncBackgroundFromCloud failed:', err);
+  }
+}
