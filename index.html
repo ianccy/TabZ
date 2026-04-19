@@ -185,6 +185,14 @@
       color: var(--text-muted);
       line-height: 1.6;
     }
+    .why-item p code {
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 0.88em;
+      padding: 2px 6px;
+      background: rgba(124, 131, 255, .12);
+      border-radius: 4px;
+      color: var(--accent-light);
+    }
 
     /* --- Features --- */
     .features {
@@ -352,6 +360,13 @@
           <p data-i18n="why4Desc">Use all three methods together. Keep some collections local, sync others to the cloud, and link existing bookmark folders &mdash; all visible side by side on the same page. No other tab manager gives you this flexibility.</p>
         </div>
       </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div>
+          <h3 data-i18n="why5Title">Privacy by design</h3>
+          <p data-i18n-html="why5Desc">TabZ uses Google&rsquo;s most restrictive <code>drive.file</code> scope &mdash; it can only read or write files it created, never the rest of your Drive. No third-party servers, no tracking, no telemetry. Your data is stored as plain JSON in your own Google Drive and exportable anytime.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -437,6 +452,8 @@
         why3Desc: 'Already have bookmark folders organized your way? Link them directly as live collections. Edits sync both ways \u2014 no migration needed, no duplication. Your bookmarks become visual and manageable.',
         why4Title: 'Mix and match freely',
         why4Desc: 'Use all three methods together. Keep some collections local, sync others to the cloud, and link existing bookmark folders \u2014 all visible side by side on the same page. No other tab manager gives you this flexibility.',
+        why5Title: 'Privacy by design',
+        why5Desc: 'TabZ uses Google\u2019s most restrictive <code>drive.file</code> scope \u2014 it can only read or write files it created, never the rest of your Drive. No third-party servers, no tracking, no telemetry. Your data is stored as plain JSON in your own Google Drive and exportable anytime.',
         featuresTitle: 'Features',
         featuresSubtitle: 'Everything you need to keep your browser organized.',
         f1Title: 'Collections',
@@ -475,6 +492,8 @@
         why3Desc: '已經有整理好的書籤資料夾？直接連結為即時收藏。雙向同步 \u2014 不需搬移、不會重複。讓書籤變得直覺好管理。',
         why4Title: '自由混搭',
         why4Desc: '三種方式可以同時使用。部分收藏留在本機、部分同步雲端、再連結既有的書籤資料夾 \u2014 全部並排顯示在同一頁面。沒有其他分頁管理工具有這種彈性。',
+        why5Title: '隱私優先設計',
+        why5Desc: 'TabZ 採用 Google 最嚴格的 <code>drive.file</code> 權限 \u2014 只能讀寫自己建立的檔案，完全看不到你 Drive 裡的其他資料。沒有第三方伺服器、沒有追蹤、沒有遙測。資料以純 JSON 儲存在你自己的 Google 雲端硬碟，隨時可匯出。',
         featuresTitle: '功能介紹',
         featuresSubtitle: '管理瀏覽器所需的一切功能。',
         f1Title: '分類收藏',
@@ -513,6 +532,8 @@
         why3Desc: 'すでに整理されたブックマークフォルダがありますか？直接ライブコレクションとしてリンク。双方向同期 \u2014 移行不要、重複なし。ブックマークが直感的に管理できます。',
         why4Title: '自由に組み合わせ',
         why4Desc: '3つの方法を同時に使用可能。一部をローカルに、一部をクラウドに同期し、既存のブックマークフォルダもリンク \u2014 すべてが同じページに並んで表示されます。この柔軟性は他にありません。',
+        why5Title: 'プライバシー重視の設計',
+        why5Desc: 'TabZ は Google で最も制限の厳しい <code>drive.file</code> スコープを使用 \u2014 自身が作成したファイルのみ読み書きでき、あなたの Drive の他のデータには一切アクセスできません。サードパーティサーバーなし、追跡なし、テレメトリなし。データはあなた自身の Google ドライブに JSON として保存され、いつでもエクスポート可能。',
         featuresTitle: '機能紹介',
         featuresSubtitle: 'ブラウザを整理するために必要なすべての機能。',
         f1Title: 'コレクション',
