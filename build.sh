@@ -39,6 +39,8 @@ cp popup.js        dist/
 cp js/app.js       dist/js/
 cp js/auth.js      dist/js/
 cp js/bookmarks.js dist/js/
+cp js/backgroundImage.js dist/js/
+cp js/bgCache.js   dist/js/
 cp js/dragdrop.js  dist/js/
 cp js/driveSync.js dist/js/
 cp js/i18n.js      dist/js/
