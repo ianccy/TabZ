@@ -318,6 +318,64 @@ async function driveGetRemoteModifiedTime() {
   return remoteTime;
 }
 
+async function driveBgUpload(blob, fileName, previousFileId) {
+  const token = await ensureToken();
+  const folderId = await ensureFolderId(token);
+
+  if (previousFileId) {
+    try {
+      await fetch(`${DRIVE_API}/files/${previousFileId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch {
+      // ignore — previous file may already be gone
+    }
+  }
+
+  const metadata = { name: fileName, parents: [folderId] };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob);
+
+  const res = await fetch(`${UPLOAD_API}/files?uploadType=multipart&fields=id,modifiedTime`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form
+  });
+  if (!res.ok) throw new Error(`Drive bg upload failed: ${res.status}`);
+  const { id, modifiedTime } = await res.json();
+  return {
+    fileId: id,
+    modifiedTime: new Date(modifiedTime).getTime()
+  };
+}
+
+async function driveBgDownload(fileId) {
+  const token = await ensureToken();
+  const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error(`Drive bg download failed: ${res.status}`);
+  }
+  const arrayBuffer = await res.arrayBuffer();
+  const contentType = res.headers.get('Content-Type') || 'image/jpeg';
+  return { arrayBuffer, contentType };
+}
+
+async function driveBgDelete(fileId) {
+  const token = await ensureToken();
+  const res = await fetch(`${DRIVE_API}/files/${fileId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Drive bg delete failed: ${res.status}`);
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'get-auth-token') {
     const opts = { interactive: msg.interactive, scopes: AUTH_SCOPES };
@@ -405,6 +463,50 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     drivePull()
       .then((result) => sendResponse(result || { data: null, remoteModifiedTime: null }))
       .catch((err) => sendResponse({ error: err.message || String(err) }));
+    return true;
+  }
+
+  if (msg.type === 'drive-bg-upload') {
+    (async () => {
+      try {
+        const blob = new Blob([msg.arrayBuffer], { type: msg.mimeType });
+        const result = await driveBgUpload(blob, msg.fileName, msg.previousFileId || null);
+        sendResponse(result);
+      } catch (err) {
+        sendResponse({ error: err.message || String(err) });
+      }
+    })();
+    return true;
+  }
+
+  if (msg.type === 'drive-bg-download') {
+    (async () => {
+      try {
+        const result = await driveBgDownload(msg.fileId);
+        if (!result) {
+          sendResponse({ bytes: null });
+          return;
+        }
+        sendResponse({
+          bytes: Array.from(new Uint8Array(result.arrayBuffer)),
+          contentType: result.contentType
+        });
+      } catch (err) {
+        sendResponse({ error: err.message || String(err) });
+      }
+    })();
+    return true;
+  }
+
+  if (msg.type === 'drive-bg-delete') {
+    (async () => {
+      try {
+        await driveBgDelete(msg.fileId);
+        sendResponse({ success: true });
+      } catch (err) {
+        sendResponse({ error: err.message || String(err) });
+      }
+    })();
     return true;
   }
 
