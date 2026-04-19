@@ -126,7 +126,7 @@ function setupBackgroundSettings() {
   });
 
   document.addEventListener('click', (e) => {
-    if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) {
+    if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) {
       panel.hidden = true;
     }
   });
