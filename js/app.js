@@ -279,6 +279,91 @@ function getLastSyncDisplay() {
   return t('minutesAgo', diff);
 }
 
+function promptMigrationSelections(collections, options) {
+  return new Promise((resolve) => {
+    renderMigrationModal(
+      collections,
+      (selections) => resolve(selections),
+      () => resolve(null),
+      { backdropCancel: true, ...options }
+    );
+  });
+}
+
+async function runTwoStepMigrationFlow(collections, options = {}) {
+  let rememberedSyncSelections = null;
+  const step1 = {
+    titleKey: options.step1TitleKey || 'migrationTitle',
+    messageKey: options.step1MessageKey || 'migrationMsgStep1',
+    confirmKey: options.step1ConfirmKey || 'nextStep',
+    confirmWhenNoneKey: options.step1ConfirmWhenNoneKey || null,
+    cancelKey: options.step1CancelKey || 'cancel',
+    warningKey: options.step1WarningKey,
+    defaultSyncChecked: options.step1DefaultSyncChecked === true,
+    showSyncOption: true,
+    showKeepOption: false
+  };
+
+  const step2 = {
+    titleKey: options.step2TitleKey || 'migrationKeepTitle',
+    messageKey: options.step2MessageKey || 'migrationKeepMsg',
+    confirmKey: options.step2ConfirmKey || 'migrationConfirm',
+    cancelKey: options.step2CancelKey || 'backStep',
+    warningKey: options.step2WarningKey,
+    showSyncOption: false,
+    showKeepOption: true
+  };
+
+  while (true) {
+    const syncSelections = await promptMigrationSelections(collections, {
+      ...step1,
+      initialSelections: rememberedSyncSelections
+    });
+    if (!syncSelections) return null;
+    rememberedSyncSelections = syncSelections;
+
+    const syncMap = new Map(syncSelections.map(s => [s.collectionId, s.sync === true]));
+    const syncedCollections = collections.filter(col => syncMap.get(col.id) === true);
+
+    if (syncedCollections.length === 0) {
+      return syncSelections.map(s => ({
+        collectionId: s.collectionId,
+        sync: false,
+        keep: true
+      }));
+    }
+
+    const carrySyncOnly = syncSelections.map(s => ({
+      collectionId: s.collectionId,
+      sync: s.sync
+    }));
+
+    const finalSelections = await promptMigrationSelections(syncedCollections, {
+      ...step2,
+      initialSelections: carrySyncOnly
+    });
+    if (!finalSelections) continue;
+
+    const finalMap = new Map(finalSelections.map(s => [s.collectionId, s]));
+    return syncSelections.map(s => {
+      if (s.sync !== true) {
+        return {
+          collectionId: s.collectionId,
+          sync: false,
+          keep: true
+        };
+      }
+
+      const detail = finalMap.get(s.collectionId);
+      return {
+        collectionId: s.collectionId,
+        sync: true,
+        keep: detail?.keep !== false
+      };
+    });
+  }
+}
+
 async function handleSignIn() {
   const signInBtn = document.getElementById('btn-sign-in');
   if (signInBtn) {
@@ -304,27 +389,36 @@ async function handleSignIn() {
       const localCollections = data.collections.filter(c => !c.linked && c.status === 'local');
       if (localCollections.length > 0) {
         await setMigrationPending();
-        renderMigrationModal(
-          localCollections,
-          async (selections) => {
-            setSyncStatus('syncing');
-            try {
-              data = await migrateToCloud(data, selections);
-              renderAll();
-              setSyncStatus('synced');
-            } catch (err) {
-              logError('Migration failed:', err);
-              setSyncStatus('error');
-              renderModal(t('migrationTitle'), t('migrationError'), [
-                { label: t('confirm'), style: 'primary' }
-              ]);
-            }
-          },
-          async () => {
-            await setMigrationAsked('cancelled');
-          },
-          { showKeepOption: false }
-        );
+        const selections = await runTwoStepMigrationFlow(localCollections, {
+          step1TitleKey: 'migrationTitle',
+          step1MessageKey: 'migrationMsgStep1',
+          step1ConfirmKey: 'nextStep',
+          step1ConfirmWhenNoneKey: 'skipAndFinish',
+          step1CancelKey: 'migrationCancel',
+          step1WarningKey: 'migrationWarning',
+          step1DefaultSyncChecked: false,
+          step2TitleKey: 'migrationKeepTitle',
+          step2MessageKey: 'migrationKeepMsg',
+          step2ConfirmKey: 'submit',
+          step2CancelKey: 'backStep'
+        });
+
+        if (!selections) {
+          await setMigrationAsked('cancelled');
+        } else {
+          setSyncStatus('syncing');
+          try {
+            data = await migrateToCloud(data, selections);
+            renderAll();
+            setSyncStatus('synced');
+          } catch (err) {
+            logError('Migration failed:', err);
+            setSyncStatus('error');
+            renderModal(t('migrationTitle'), t('migrationError'), [
+              { label: t('confirm'), style: 'primary' }
+            ]);
+          }
+        }
       } else {
         await chrome.storage.local.set({ migrationAsked: true, migrationDecision: 'confirmed' });
       }
@@ -364,28 +458,28 @@ async function handleSignOut() {
   };
 
   if (draftCount > 0) {
-    renderMigrationModal(
-      draftCollections,
-      async (selections) => {
-        setSyncStatus('syncing');
-        try {
-          data = await migrateToCloud(data, selections);
-        } catch (err) {
-          logError('Logout draft processing failed:', err);
-        }
-        await finalize(false);
-      },
-      async () => {
-        await finalize(false);
-      },
-      {
-        titleKey: 'logoutDraftTitle',
-        messageKey: 'logoutDraftMsg',
-        confirmKey: 'signOut',
-        cancelKey: 'cancel',
-        showKeepOption: true
-      }
-    );
+    const selections = await runTwoStepMigrationFlow(draftCollections, {
+      step1TitleKey: 'logoutDraftTitle',
+      step1MessageKey: 'logoutDraftMsgStep1',
+      step1ConfirmKey: 'nextStep',
+      step1ConfirmWhenNoneKey: 'confirmAndSignOut',
+      step1CancelKey: 'cancel',
+      step1DefaultSyncChecked: false,
+      step2TitleKey: 'logoutDraftKeepTitle',
+      step2MessageKey: 'logoutDraftKeepMsg',
+      step2ConfirmKey: 'confirmAndSignOut',
+      step2CancelKey: 'backStep'
+    });
+
+    if (!selections) return;
+
+    setSyncStatus('syncing');
+    try {
+      data = await migrateToCloud(data, selections);
+    } catch (err) {
+      logError('Logout draft processing failed:', err);
+    }
+    await finalize(false);
     return;
   }
 

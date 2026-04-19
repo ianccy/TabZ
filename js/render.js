@@ -707,10 +707,21 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
   const titleKey = options.titleKey || 'migrationTitle';
   const messageKey = options.messageKey || 'migrationMsg';
   const confirmKey = options.confirmKey || 'migrationConfirm';
+  const confirmWhenNoneKey = options.confirmWhenNoneKey || null;
   const cancelKey = options.cancelKey || 'migrationCancel';
+  const showSyncOption = options.showSyncOption !== false;
   const showKeepOption = options.showKeepOption === true;
-  const warningKey = options.warningKey || (!showKeepOption ? 'migrationWarning' : null);
+  const defaultSyncChecked = options.defaultSyncChecked !== false;
+  const defaultKeepChecked = options.defaultKeepChecked !== false;
+  const warningKey = options.warningKey || (!showKeepOption && showSyncOption ? 'migrationWarning' : null);
   const backdropCancel = options.backdropCancel === true;
+  const initialSelections = new Map(
+    Array.isArray(options.initialSelections)
+      ? options.initialSelections
+        .filter(s => s?.collectionId)
+        .map(s => [s.collectionId, s])
+      : []
+  );
 
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop';
@@ -726,9 +737,11 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
 
   const hints = document.createElement('div');
   hints.className = 'migration-hints';
-  const hintSync = document.createElement('p');
-  hintSync.textContent = t('migrationHintSync');
-  hints.appendChild(hintSync);
+  if (showSyncOption) {
+    const hintSync = document.createElement('p');
+    hintSync.textContent = t('migrationHintSync');
+    hints.appendChild(hintSync);
+  }
   if (showKeepOption) {
     const hintKeep = document.createElement('p');
     hintKeep.textContent = t('migrationHintKeep');
@@ -749,22 +762,26 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
   const syncInputs = [];
   const keepInputs = [];
 
-  const selectAllSyncLabel = document.createElement('label');
-  selectAllSyncLabel.className = 'migration-check';
-  const selectAllSyncInput = document.createElement('input');
-  selectAllSyncInput.type = 'checkbox';
-  selectAllSyncInput.checked = true;
-  const selectAllSyncText = document.createElement('span');
-  selectAllSyncText.textContent = t('selectAllSync');
-  selectAllSyncLabel.append(selectAllSyncInput, selectAllSyncText);
-  selectAllRow.appendChild(selectAllSyncLabel);
+  let selectAllSyncInput = null;
+  if (showSyncOption) {
+    const selectAllSyncLabel = document.createElement('label');
+    selectAllSyncLabel.className = 'migration-check';
+    selectAllSyncInput = document.createElement('input');
+    selectAllSyncInput.type = 'checkbox';
+    selectAllSyncInput.checked = defaultSyncChecked;
+    const selectAllSyncText = document.createElement('span');
+    selectAllSyncText.textContent = t('selectAllSync');
+    selectAllSyncLabel.append(selectAllSyncInput, selectAllSyncText);
+    selectAllRow.appendChild(selectAllSyncLabel);
+  }
 
+  let selectAllKeepInput = null;
   if (showKeepOption) {
     const selectAllKeepLabel = document.createElement('label');
     selectAllKeepLabel.className = 'migration-check';
-    const selectAllKeepInput = document.createElement('input');
+    selectAllKeepInput = document.createElement('input');
     selectAllKeepInput.type = 'checkbox';
-    selectAllKeepInput.checked = true;
+    selectAllKeepInput.checked = defaultKeepChecked;
     const selectAllKeepText = document.createElement('span');
     selectAllKeepText.textContent = t('selectAllKeep');
     selectAllKeepLabel.append(selectAllKeepInput, selectAllKeepText);
@@ -778,19 +795,32 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
     });
   }
 
-  selectAllSyncInput.addEventListener('change', () => {
-    for (const cb of syncInputs) {
-      cb.checked = selectAllSyncInput.checked;
-      cb.dispatchEvent(new Event('change'));
-    }
-  });
+  if (selectAllSyncInput) {
+    selectAllSyncInput.addEventListener('change', () => {
+      for (const cb of syncInputs) {
+        cb.checked = selectAllSyncInput.checked;
+        cb.dispatchEvent(new Event('change'));
+      }
+    });
+  }
 
   const list = document.createElement('ul');
   list.className = 'migration-list';
 
   const selections = new Map();
   for (const col of collections) {
-    selections.set(col.id, { collectionId: col.id, sync: true, keep: !showKeepOption ? false : true });
+    const init = initialSelections.get(col.id) || {};
+    const initialSync = showSyncOption
+      ? init.sync !== false
+      : init.sync !== undefined
+        ? init.sync === true
+        : true;
+    const initialKeep = showKeepOption
+      ? init.keep !== false
+      : init.keep === true;
+    const resolvedSync = init.sync !== undefined ? init.sync === true : initialSync && defaultSyncChecked;
+    const resolvedKeep = init.keep !== undefined ? init.keep === true : initialKeep && defaultKeepChecked;
+    selections.set(col.id, { collectionId: col.id, sync: resolvedSync, keep: resolvedKeep });
 
     const li = document.createElement('li');
     li.className = 'migration-item';
@@ -802,28 +832,29 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
     const controls = document.createElement('div');
     controls.className = 'migration-item-controls';
 
-    const syncLabel = document.createElement('label');
-    syncLabel.className = 'migration-check';
-    const syncInput = document.createElement('input');
-    syncInput.type = 'checkbox';
-    syncInput.checked = true;
-    const syncText = document.createElement('span');
-    syncText.textContent = t('migrationOptionSync');
-    syncInput.addEventListener('change', () => {
-      const s = selections.get(col.id);
-      selections.set(col.id, { ...s, sync: syncInput.checked });
-    });
-    syncLabel.append(syncInput, syncText);
-    syncInputs.push(syncInput);
-
-    controls.append(syncLabel);
+    if (showSyncOption) {
+      const syncLabel = document.createElement('label');
+      syncLabel.className = 'migration-check';
+      const syncInput = document.createElement('input');
+      syncInput.type = 'checkbox';
+      syncInput.checked = resolvedSync;
+      const syncText = document.createElement('span');
+      syncText.textContent = t('migrationOptionSync');
+      syncInput.addEventListener('change', () => {
+        const s = selections.get(col.id);
+        selections.set(col.id, { ...s, sync: syncInput.checked });
+      });
+      syncLabel.append(syncInput, syncText);
+      syncInputs.push(syncInput);
+      controls.append(syncLabel);
+    }
 
     if (showKeepOption) {
       const keepLabel = document.createElement('label');
       keepLabel.className = 'migration-check';
       const keepInput = document.createElement('input');
       keepInput.type = 'checkbox';
-      keepInput.checked = true;
+      keepInput.checked = resolvedKeep;
       const keepText = document.createElement('span');
       keepText.textContent = t('migrationOptionKeep');
       keepInput.addEventListener('change', () => {
@@ -839,6 +870,13 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
     list.appendChild(li);
   }
 
+  if (selectAllSyncInput && syncInputs.length > 0) {
+    selectAllSyncInput.checked = syncInputs.every(cb => cb.checked);
+  }
+  if (selectAllKeepInput && keepInputs.length > 0) {
+    selectAllKeepInput.checked = keepInputs.every(cb => cb.checked);
+  }
+
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
 
@@ -852,18 +890,39 @@ export function renderMigrationModal(collections, onConfirm, onCancel, options =
 
   const confirmBtn = document.createElement('button');
   confirmBtn.className = 'modal-btn primary';
-  confirmBtn.textContent = t(confirmKey);
+  const updateConfirmButtonLabel = () => {
+    if (!confirmWhenNoneKey || !showSyncOption || showKeepOption) {
+      confirmBtn.textContent = t(confirmKey);
+      return;
+    }
+    const hasAnySync = Array.from(selections.values()).some(s => s.sync === true);
+    confirmBtn.textContent = hasAnySync ? t(confirmKey) : t(confirmWhenNoneKey);
+  };
+  updateConfirmButtonLabel();
   confirmBtn.addEventListener('click', () => {
     backdrop.remove();
     onConfirm(Array.from(selections.values()));
   });
 
-  actions.append(cancelBtn, confirmBtn);
-  if (warningEl) {
-    modal.append(h3, p, hints, warningEl, selectAllRow, list, actions);
-  } else {
-    modal.append(h3, p, hints, selectAllRow, list, actions);
+  for (const cb of syncInputs) {
+    cb.addEventListener('change', updateConfirmButtonLabel);
   }
+  if (selectAllSyncInput) {
+    selectAllSyncInput.addEventListener('change', updateConfirmButtonLabel);
+  }
+
+  actions.append(cancelBtn, confirmBtn);
+  modal.append(h3, p);
+  if (hints.childElementCount > 0) {
+    modal.appendChild(hints);
+  }
+  if (warningEl) {
+    modal.appendChild(warningEl);
+  }
+  if (selectAllRow.childElementCount > 0) {
+    modal.appendChild(selectAllRow);
+  }
+  modal.append(list, actions);
   backdrop.appendChild(modal);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) {
