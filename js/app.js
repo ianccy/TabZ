@@ -33,6 +33,13 @@ import { getBookmarkTree, getRootFolderId } from './bookmarks.js';
 
 import { initTutorial, startTutorial } from './tutorial.js';
 
+import {
+  initBackgroundImage,
+  uploadBackgroundImage,
+  removeBackgroundImage as removeUploadedBgImage,
+  syncBackgroundFromCloud
+} from './backgroundImage.js';
+
 let data = { collections: [], collectionOrder: [] };
 let openTabs = [];
 let searchQuery = '';
@@ -157,6 +164,63 @@ function setupBackgroundSettings() {
     await chrome.storage.local.remove('bgImage');
     applyBackground(null, null);
     hideCurrentImage();
+    try {
+      await removeUploadedBgImage();
+    } catch (err) {
+      logError('removeUploadedBgImage failed:', err);
+    }
+  });
+
+  const uploadBtn = document.getElementById('bg-upload-btn');
+  const uploadInput = document.getElementById('bg-upload-input');
+  const uploadHint = document.getElementById('bg-upload-hint');
+  const uploadStatus = document.getElementById('bg-upload-status');
+
+  function setUploadAuthState(isSignedIn) {
+    uploadBtn.disabled = !isSignedIn;
+    uploadHint.hidden = isSignedIn;
+  }
+
+  getStatus().then((s) => setUploadAuthState(s.isSignedIn));
+  onStatusChange((s) => setUploadAuthState(s.isSignedIn));
+
+  function showUploadStatus(message, isError = false) {
+    uploadStatus.textContent = message;
+    uploadStatus.classList.toggle('error', isError);
+    uploadStatus.hidden = false;
+  }
+
+  function hideUploadStatus() {
+    uploadStatus.hidden = true;
+    uploadStatus.textContent = '';
+    uploadStatus.classList.remove('error');
+  }
+
+  uploadBtn.addEventListener('click', () => {
+    if (uploadBtn.disabled) return;
+    uploadInput.value = '';
+    uploadInput.click();
+  });
+
+  uploadInput.addEventListener('change', async () => {
+    const file = uploadInput.files?.[0];
+    if (!file) return;
+
+    uploadBtn.disabled = true;
+    showUploadStatus(t('bgUploading'));
+
+    try {
+      await uploadBackgroundImage(file);
+      await chrome.storage.local.remove('bgColor');
+      showUploadStatus(t('bgUploadSuccess'));
+      hideCurrentImage();
+      setTimeout(hideUploadStatus, 2000);
+    } catch (err) {
+      showUploadStatus(t('bgUploadError', err.message || String(err)), true);
+    } finally {
+      const s = await getStatus();
+      setUploadAuthState(s.isSignedIn);
+    }
   });
 }
 
@@ -215,6 +279,10 @@ function applyStaticI18n() {
   if (bgResetBtn) bgResetBtn.textContent = t('bgReset');
   const bgRemoveBtn = document.getElementById('bg-remove-image-btn');
   if (bgRemoveBtn) bgRemoveBtn.title = t('bgRemoveImage');
+  const bgUploadBtnEl = document.getElementById('bg-upload-btn');
+  if (bgUploadBtnEl) bgUploadBtnEl.textContent = t('bgUploadBtn');
+  const bgUploadHintEl = document.getElementById('bg-upload-hint');
+  if (bgUploadHintEl) bgUploadHintEl.textContent = t('bgUploadHint');
   const tutorialLabel = document.getElementById('settings-tutorial-label');
   if (tutorialLabel) tutorialLabel.textContent = t('tutorialBtn');
   const signInBtn = document.getElementById('btn-sign-in');
@@ -228,7 +296,15 @@ function applyStaticI18n() {
 async function initAuth() {
   const status = await getStatus();
   updateAuthUI(status);
-  onStatusChange(updateAuthUI);
+  if (status.isSignedIn) {
+    syncBackgroundFromCloud().catch((err) => logError('bg sync on startup failed:', err));
+  }
+  onStatusChange((next) => {
+    updateAuthUI(next);
+    if (next.isSignedIn) {
+      syncBackgroundFromCloud().catch((err) => logError('bg sync on sign-in failed:', err));
+    }
+  });
 }
 
 function updateAuthUI(status) {
@@ -506,6 +582,7 @@ async function triggerSync({ forcePull = false } = {}) {
       async onUpdated() {
         data = await loadData();
         renderAll();
+        await syncBackgroundFromCloud();
       }
     });
     setSyncStatus('synced');
@@ -579,6 +656,7 @@ document.addEventListener('tabz:lang-changed', () => {
 async function init() {
   await initTheme();
   await initBackground();
+  await initBackgroundImage();
   await loadLang();
   data = await loadData();
   await refreshOpenTabs();
