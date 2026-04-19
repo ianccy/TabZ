@@ -31,7 +31,8 @@ const CLOUD_TEMPLATE = {
   version: 1,
   lastModified: 0,
   collections: [],
-  uiState: { collapsed: {}, collectionOrder: [] }
+  uiState: { collapsed: {}, collectionOrder: [] },
+  background: null
 };
 
 export { DEFAULT_COLORS, DEFAULT_ICONS };
@@ -64,7 +65,8 @@ async function loadCloudData() {
     uiState: {
       collapsed: cloudData.uiState?.collapsed || {},
       collectionOrder: cloudData.uiState?.collectionOrder || []
-    }
+    },
+    background: cloudData.background || null
   };
 }
 
@@ -804,7 +806,8 @@ function sanitizeCloudData(raw) {
     uiState: {
       collapsed: raw.uiState?.collapsed || {},
       collectionOrder: raw.uiState?.collectionOrder || []
-    }
+    },
+    background: raw.background || null
   };
 }
 
