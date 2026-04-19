@@ -91,3 +91,21 @@ export async function uploadBackgroundImage(file) {
 
   await chrome.storage.local.remove('bgImage');
 }
+
+export async function removeBackgroundImage() {
+  const status = await getAuthStatus();
+  const cloudData = await loadCloudData();
+  const fileId = cloudData.background?.fileId || null;
+
+  if (status.isSignedIn && fileId) {
+    try {
+      await deleteBgImage(fileId);
+    } catch (err) {
+      logError('Drive bg delete failed:', err);
+    }
+  }
+
+  cloudData.background = null;
+  await saveCloudData(cloudData, { immediate: true });
+  await clearBgCache();
+}
