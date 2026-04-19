@@ -35,3 +35,28 @@ export async function exists() {
   const res = await callBackground({ type: 'drive-exists' });
   return res.exists === true;
 }
+
+export async function uploadBgImage(blob, fileName, previousFileId = null) {
+  const arrayBuffer = await blob.arrayBuffer();
+  const res = await callBackground({
+    type: 'drive-bg-upload',
+    arrayBuffer,
+    mimeType: blob.type,
+    fileName,
+    previousFileId
+  });
+  return {
+    fileId: res.fileId,
+    modifiedTime: Number(res.modifiedTime) || Date.now()
+  };
+}
+
+export async function downloadBgImage(fileId) {
+  const res = await callBackground({ type: 'drive-bg-download', fileId });
+  if (!res.bytes) return null;
+  return new Blob([new Uint8Array(res.bytes)], { type: res.contentType });
+}
+
+export async function deleteBgImage(fileId) {
+  await callBackground({ type: 'drive-bg-delete', fileId });
+}
