@@ -53,8 +53,8 @@ export async function uploadBgImage(blob, fileName, previousFileId = null) {
 
 export async function downloadBgImage(fileId) {
   const res = await callBackground({ type: 'drive-bg-download', fileId });
-  if (!res.bytes) return null;
-  return new Blob([new Uint8Array(res.bytes)], { type: res.contentType });
+  if (!res.arrayBuffer) return null;
+  return new Blob([res.arrayBuffer], { type: res.contentType });
 }
 
 export async function deleteBgImage(fileId) {

@@ -883,7 +883,7 @@ export async function backgroundSync(data, { onBeforePull, onUpdated, forcePull 
     cloudLastModified: remoteModifiedTime
   });
 
-  if (onUpdated) onUpdated();
+  if (onUpdated) await onUpdated();
   return true;
 }
 

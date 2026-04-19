@@ -37,7 +37,8 @@ import {
   initBackgroundImage,
   uploadBackgroundImage,
   removeBackgroundImage as removeUploadedBgImage,
-  syncBackgroundFromCloud
+  syncBackgroundFromCloud,
+  getUploadedBgInfo
 } from './backgroundImage.js';
 
 let data = { collections: [], collectionOrder: [] };
@@ -87,8 +88,18 @@ function setupBackgroundSettings() {
   const imageThumb = document.getElementById('bg-image-thumb');
   const imageName = document.getElementById('bg-image-name');
 
-  function showCurrentImage(url) {
+  let thumbObjectUrl = null;
+
+  function releaseThumbObjectUrl() {
+    if (thumbObjectUrl) {
+      URL.revokeObjectURL(thumbObjectUrl);
+      thumbObjectUrl = null;
+    }
+  }
+
+  function showCurrentImageUrl(url) {
     if (!url) { hideCurrentImage(); return; }
+    releaseThumbObjectUrl();
     imageThumb.src = url;
     imageThumb.onerror = () => hideCurrentImage();
     try {
@@ -99,25 +110,48 @@ function setupBackgroundSettings() {
     imageCurrent.hidden = false;
   }
 
+  function showCurrentImageBlob(blob, fileName) {
+    releaseThumbObjectUrl();
+    thumbObjectUrl = URL.createObjectURL(blob);
+    imageThumb.src = thumbObjectUrl;
+    imageThumb.onerror = () => hideCurrentImage();
+    imageName.textContent = fileName || 'tabz-bg';
+    imageCurrent.hidden = false;
+  }
+
   function hideCurrentImage() {
+    releaseThumbObjectUrl();
     imageCurrent.hidden = true;
     imageThumb.src = '';
     imageName.textContent = '';
     urlInput.value = '';
   }
 
+  async function refreshCurrentImage() {
+    const { bgImage } = await chrome.storage.local.get('bgImage');
+    if (bgImage) {
+      urlInput.value = bgImage;
+      showCurrentImageUrl(bgImage);
+      return;
+    }
+    const info = await getUploadedBgInfo();
+    if (info) {
+      showCurrentImageBlob(info.blob, info.fileName);
+      return;
+    }
+    hideCurrentImage();
+  }
+
   btn.addEventListener('click', async () => {
     const isHidden = panel.hidden;
     panel.hidden = !isHidden;
     if (isHidden) {
-      const { bgColor, bgImage } = await chrome.storage.local.get(['bgColor', 'bgImage']);
+      const { bgColor } = await chrome.storage.local.get('bgColor');
       colorInput.value = bgColor || '#f5f5f9';
-      if (bgImage) {
-        urlInput.value = bgImage;
-        showCurrentImage(bgImage);
-      } else {
-        hideCurrentImage();
-      }
+      hideUploadStatus();
+      await refreshCurrentImage();
+    } else {
+      releaseThumbObjectUrl();
     }
   });
 
@@ -152,7 +186,12 @@ function setupBackgroundSettings() {
     await chrome.storage.local.set({ bgImage: url });
     await chrome.storage.local.remove('bgColor');
     applyBackground(null, url);
-    showCurrentImage(url);
+    try {
+      await removeUploadedBgImage();
+    } catch (err) {
+      logError('removeUploadedBgImage failed:', err);
+    }
+    showCurrentImageUrl(url);
   }
 
   urlApplyBtn.addEventListener('click', applyImageUrl);
@@ -184,17 +223,21 @@ function setupBackgroundSettings() {
   getStatus().then((s) => setUploadAuthState(s.isSignedIn));
   onStatusChange((s) => setUploadAuthState(s.isSignedIn));
 
-  function showUploadStatus(message, isError = false) {
+  function showUploadStatus(message, mode) {
     uploadStatus.textContent = message;
-    uploadStatus.classList.toggle('error', isError);
+    uploadStatus.classList.remove('error', 'loading');
+    if (mode === 'error') uploadStatus.classList.add('error');
+    else if (mode === 'loading') uploadStatus.classList.add('loading');
     uploadStatus.hidden = false;
   }
 
   function hideUploadStatus() {
     uploadStatus.hidden = true;
     uploadStatus.textContent = '';
-    uploadStatus.classList.remove('error');
+    uploadStatus.classList.remove('error', 'loading');
   }
+
+  uploadInput.addEventListener('click', (e) => e.stopPropagation());
 
   uploadBtn.addEventListener('click', () => {
     if (uploadBtn.disabled) return;
@@ -207,16 +250,16 @@ function setupBackgroundSettings() {
     if (!file) return;
 
     uploadBtn.disabled = true;
-    showUploadStatus(t('bgUploading'));
+    showUploadStatus(t('bgUploading'), 'loading');
 
     try {
       await uploadBackgroundImage(file);
       await chrome.storage.local.remove('bgColor');
+      await refreshCurrentImage();
       showUploadStatus(t('bgUploadSuccess'));
-      hideCurrentImage();
       setTimeout(hideUploadStatus, 2000);
     } catch (err) {
-      showUploadStatus(t('bgUploadError', err.message || String(err)), true);
+      showUploadStatus(t('bgUploadError', err.message || String(err)), 'error');
     } finally {
       const s = await getStatus();
       setUploadAuthState(s.isSignedIn);

@@ -484,11 +484,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       try {
         const result = await driveBgDownload(msg.fileId);
         if (!result) {
-          sendResponse({ bytes: null });
+          sendResponse({ arrayBuffer: null });
           return;
         }
         sendResponse({
-          bytes: Array.from(new Uint8Array(result.arrayBuffer)),
+          arrayBuffer: result.arrayBuffer,
           contentType: result.contentType
         });
       } catch (err) {

@@ -86,10 +86,20 @@ export async function uploadBackgroundImage(file) {
   cloudData.background = { fileId, fileName, modifiedTime };
   await saveCloudData(cloudData, { immediate: true });
 
-  await saveBgToCache({ blob: file, fileId, modifiedTime });
+  await saveBgToCache({ blob: file, fileId, modifiedTime, fileName: file.name });
   applyBlobAsBackground(file);
 
   await chrome.storage.local.remove('bgImage');
+}
+
+export async function getUploadedBgInfo() {
+  try {
+    const entry = await loadBgFromCache();
+    if (!entry?.blob) return null;
+    return { blob: entry.blob, fileName: entry.fileName || 'tabz-bg' };
+  } catch {
+    return null;
+  }
 }
 
 export async function removeBackgroundImage() {
@@ -140,7 +150,8 @@ export async function syncBackgroundFromCloud() {
     await saveBgToCache({
       blob,
       fileId: remoteMeta.fileId,
-      modifiedTime: remoteMeta.modifiedTime
+      modifiedTime: remoteMeta.modifiedTime,
+      fileName: remoteMeta.fileName
     });
     applyBlobAsBackground(blob);
   } catch (err) {
