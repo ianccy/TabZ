@@ -43,3 +43,20 @@ export async function clearBgCache() {
   await clearBgCacheDB();
   clearBackgroundDisplay();
 }
+
+async function applyCachedBackground() {
+  try {
+    const entry = await loadBgFromCache();
+    if (entry?.blob) {
+      applyBlobAsBackground(entry.blob);
+      return true;
+    }
+  } catch (err) {
+    logError('applyCachedBackground failed:', err);
+  }
+  return false;
+}
+
+export async function initBackgroundImage() {
+  await applyCachedBackground();
+}
