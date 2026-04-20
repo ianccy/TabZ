@@ -469,7 +469,6 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--bg-surface, #ffffff) 68%, transparent);
   backdrop-filter: blur(1px);
 }
 
