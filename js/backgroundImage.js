@@ -135,16 +135,17 @@ export async function syncBackgroundFromCloud() {
     return;
   }
 
-  if (localEntry && localEntry.fileId === remoteMeta.fileId) {
+  if (localEntry?.blob && localEntry.fileId === remoteMeta.fileId) {
     return;
   }
 
   try {
     const blob = await downloadBgImage(remoteMeta.fileId);
     if (!blob) {
-      cloudData.background = null;
-      await saveCloudData(cloudData, { immediate: true });
-      await clearBgCache();
+      // Keep remote metadata intact so a later sync can retry download.
+      if (localEntry) {
+        await clearBgCache();
+      }
       return;
     }
     await saveBgToCache({
