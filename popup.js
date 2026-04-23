@@ -165,7 +165,7 @@ async function init() {
 
   // Open TabZ link
   const openBtn = document.getElementById('btn-open-visitab');
-  openBtn.textContent = t('popupOpenVisiTab');
+  openBtn.textContent = t('Open TabZ');
   openBtn.addEventListener('click', (e) => {
     e.preventDefault();
     chrome.tabs.create({});
