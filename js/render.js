@@ -19,13 +19,21 @@ export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseT
   }
   const fragment = document.createDocumentFragment();
   for (const tab of tabs) {
-    const el = document.createElement('div');
+    const el = document.createElement('a');
     el.className = 'tab-item';
+    el.href = tab.url || '#';
     el.dataset.tabId = tab.id;
     el.dataset.type = 'open-tab';
     el.dataset.url = tab.url || '';
     el.dataset.favIconUrl = tab.favIconUrl || '';
     el.draggable = true;
+
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      onTabClick(tab.id);
+    });
 
     const handle = document.createElement('span');
     handle.className = 'drag-handle';
@@ -38,10 +46,6 @@ export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseT
 
     const info = document.createElement('div');
     info.className = 'tab-info';
-    info.addEventListener('click', (e) => {
-      e.stopPropagation();
-      onTabClick(tab.id);
-    });
 
     const title = document.createElement('span');
     title.className = 'tab-title';
@@ -56,6 +60,7 @@ export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseT
     addBtn.className = 'tab-add-btn';
     addBtn.textContent = '+';
     addBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       onAddClick(e, tab);
     });
@@ -64,6 +69,7 @@ export function renderOpenTabs(container, tabs, onAddClick, onTabClick, onCloseT
     closeBtn.className = 'tab-remove-btn';
     closeBtn.textContent = '✕';
     closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       onCloseTab(tab.id);
     });
@@ -211,12 +217,20 @@ function renderCollectionCard(col, handlers) {
 }
 
 function renderCollectionTab(tab, collectionId, handlers) {
-  const el = document.createElement('div');
+  const el = document.createElement('a');
   el.className = 'tab-item';
+  el.href = tab.url || '#';
   el.dataset.tabId = tab.id;
   el.dataset.collectionId = collectionId;
   el.dataset.type = 'collection-tab';
   el.draggable = true;
+
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    if (tab.url) openUrl(tab.url);
+  });
 
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
@@ -237,10 +251,6 @@ function renderCollectionTab(tab, collectionId, handlers) {
 
   const info = document.createElement('div');
   info.className = 'tab-info';
-  info.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (tab.url) openUrl(tab.url);
-  });
 
   const titleRow = document.createElement('div');
   titleRow.className = 'tab-title-row';
@@ -254,6 +264,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   editBtn.className = 'tab-edit-btn';
   editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
   editBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     if (handlers.onRenameTab) handlers.onRenameTab(collectionId, tab.id, title);
   });
@@ -262,6 +273,7 @@ function renderCollectionTab(tab, collectionId, handlers) {
   removeBtn.className = 'tab-remove-btn';
   removeBtn.textContent = '✕';
   removeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     handlers.onRemoveTab(collectionId, tab.id);
   });
@@ -272,10 +284,6 @@ function renderCollectionTab(tab, collectionId, handlers) {
   urlEl.className = 'tab-url';
   urlEl.textContent = displayUrl;
   urlEl.dataset.tooltip = tab.url || '';
-  urlEl.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (tab.url) openUrl(tab.url);
-  });
   info.append(titleRow, urlEl);
 
   el.append(handle, favicon, info, removeBtn);
